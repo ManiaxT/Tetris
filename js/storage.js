@@ -16,7 +16,9 @@ const Storage = {
         musicPlayPause: 'KeyP',
         musicMode: 'KeyM',
         musicPrev: 'Comma',
-        musicNext: 'Period'
+        musicNext: 'Period',
+        sfxVolume: 80,
+        musicVolume: 80
     },
 
     getSettings() {

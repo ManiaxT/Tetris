@@ -31,9 +31,11 @@
                 </div>
                 <div id="main-leaderboard" class="panel-box main-leaderboard">
                     <h3>Leaderboard</h3>
-                    <ul id="main-leaderboard-list">
-                        <!-- Injected via JS -->
-                    </ul>
+                    <div class="panel-scroll">
+                        <ul id="main-leaderboard-list">
+                            <!-- Injected via JS -->
+                        </ul>
+                    </div>
                 </div>
             </div>
             
@@ -42,62 +44,78 @@
         <!-- Settings Menu -->
         <div id="settings-menu" class="screen">
             <h2 class="glitch-text" data-text="Settings">Settings</h2>
-            <div class="settings-content" style="max-height: 400px; overflow-y: auto;">
-                <div class="keybind-group theme-group">
-                    <label>Theme</label>
-                    <button id="btn-toggle-theme" class="keybind-btn">Modern</button>
-                </div>
-                <div class="keybind-group music-group">
-                    <label>Music Playlist</label>
-                    <input type="file" id="file-add-song" multiple accept="audio/*" style="display:none">
-                    <button id="btn-add-song" class="action-btn" style="background:var(--accent-color); color:var(--bg-color);">Add Songs</button>
-                </div>
-                <ul id="playlist-container" class="playlist-list">
-                    <!-- Playlist items go here -->
-                </ul>
-                <div class="keybind-group">
-                    <label>Move Left</label>
-                    <button class="keybind-btn" data-action="left">ArrowLeft</button>
-                </div>
-                <div class="keybind-group">
-                    <label>Move Right</label>
-                    <button class="keybind-btn" data-action="right">ArrowRight</button>
-                </div>
-                <div class="keybind-group">
-                    <label>Soft Drop</label>
-                    <button class="keybind-btn" data-action="softDrop">ArrowDown</button>
-                </div>
-                <div class="keybind-group">
-                    <label>Hard Drop</label>
-                    <button class="keybind-btn" data-action="hardDrop">Space</button>
-                </div>
-                <div class="keybind-group">
-                    <label>Rotate CW</label>
-                    <button class="keybind-btn" data-action="rotateCW">ArrowUp</button>
-                </div>
-                <div class="keybind-group">
-                    <label>Rotate CCW</label>
-                    <button class="keybind-btn" data-action="rotateCCW">KeyZ</button>
-                </div>
-                <div class="keybind-group">
-                    <label>Hold Piece</label>
-                    <button class="keybind-btn" data-action="hold">KeyC</button>
-                </div>
-                <div class="keybind-group">
-                    <label>Music: Play/Pause</label>
-                    <button class="keybind-btn" data-action="musicPlayPause">KeyP</button>
-                </div>
-                <div class="keybind-group">
-                    <label>Music: Mode</label>
-                    <button class="keybind-btn" data-action="musicMode">KeyM</button>
-                </div>
-                <div class="keybind-group">
-                    <label>Music: Prev</label>
-                    <button class="keybind-btn" data-action="musicPrev">Comma</button>
-                </div>
-                <div class="keybind-group">
-                    <label>Music: Next</label>
-                    <button class="keybind-btn" data-action="musicNext">Period</button>
+            <div class="settings-content">
+                <div class="settings-scroll">
+                    <div class="keybind-group theme-group">
+                        <label>Theme</label>
+                        <button id="btn-toggle-theme" class="keybind-btn">Modern</button>
+                    </div>
+                    <div class="keybind-group sfx-volume-group">
+                        <label>SFX Volume</label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="range" id="slider-sfx-volume" min="0" max="100" value="80" class="volume-slider">
+                            <span id="sfx-volume-val" style="margin-left: 10px; font-weight: bold; width: 45px;">80%</span>
+                        </div>
+                    </div>
+                    <div class="keybind-group music-volume-group">
+                        <label>Music Volume</label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="range" id="slider-music-volume" min="0" max="100" value="80" class="volume-slider">
+                            <span id="music-volume-val" style="margin-left: 10px; font-weight: bold; width: 45px;">80%</span>
+                        </div>
+                    </div>
+                    <div class="keybind-group music-group">
+                        <label>Music Playlist</label>
+                        <input type="file" id="file-add-song" multiple accept="audio/*" style="display:none">
+                        <button id="btn-add-song" class="action-btn" style="background:var(--accent-color); color:var(--bg-color);">Add Songs</button>
+                    </div>
+                    <ul id="playlist-container" class="playlist-list">
+                        <!-- Playlist items go here -->
+                    </ul>
+                    <div class="keybind-group">
+                        <label>Move Left</label>
+                        <button class="keybind-btn" data-action="left">ArrowLeft</button>
+                    </div>
+                    <div class="keybind-group">
+                        <label>Move Right</label>
+                        <button class="keybind-btn" data-action="right">ArrowRight</button>
+                    </div>
+                    <div class="keybind-group">
+                        <label>Soft Drop</label>
+                        <button class="keybind-btn" data-action="softDrop">ArrowDown</button>
+                    </div>
+                    <div class="keybind-group">
+                        <label>Hard Drop</label>
+                        <button class="keybind-btn" data-action="hardDrop">Space</button>
+                    </div>
+                    <div class="keybind-group">
+                        <label>Rotate CW</label>
+                        <button class="keybind-btn" data-action="rotateCW">ArrowUp</button>
+                    </div>
+                    <div class="keybind-group">
+                        <label>Rotate CCW</label>
+                        <button class="keybind-btn" data-action="rotateCCW">KeyZ</button>
+                    </div>
+                    <div class="keybind-group">
+                        <label>Hold Piece</label>
+                        <button class="keybind-btn" data-action="hold">KeyC</button>
+                    </div>
+                    <div class="keybind-group">
+                        <label>Music: Play/Pause</label>
+                        <button class="keybind-btn" data-action="musicPlayPause">KeyP</button>
+                    </div>
+                    <div class="keybind-group">
+                        <label>Music: Mode</label>
+                        <button class="keybind-btn" data-action="musicMode">KeyM</button>
+                    </div>
+                    <div class="keybind-group">
+                        <label>Music: Prev</label>
+                        <button class="keybind-btn" data-action="musicPrev">Comma</button>
+                    </div>
+                    <div class="keybind-group">
+                        <label>Music: Next</label>
+                        <button class="keybind-btn" data-action="musicNext">Period</button>
+                    </div>
                 </div>
             </div>
             <button id="btn-settings-back" class="back-btn">Back</button>
@@ -107,20 +125,22 @@
         <div id="scoreboard-menu" class="screen">
             <h2 class="glitch-text" data-text="High Scores">High Scores</h2>
             <div class="scoreboard-content">
-                <table id="scores-table">
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Name</th>
-                            <th>Score</th>
-                            <th>Lines</th>
-                            <th>Level</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Scores injected here -->
-                    </tbody>
-                </table>
+                <div class="panel-scroll">
+                    <table id="scores-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Score</th>
+                                <th>Lines</th>
+                                <th>Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Scores injected here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <button id="btn-scoreboard-back" class="back-btn">Back</button>
         </div>
@@ -131,7 +151,7 @@
                 <div class="side-panel left">
                     <div class="panel-box hold-box">
                         <h3>Hold</h3>
-                        <canvas id="hold-canvas" width="80" height="80"></canvas>
+                        <canvas id="hold-canvas" width="100" height="100"></canvas>
                     </div>
                     <div class="panel-box music-player-box">
                         <h3>Music</h3>
@@ -162,14 +182,14 @@
                 </div>
 
                 <div class="board-container">
-                    <canvas id="game-canvas" width="300" height="600"></canvas>
+                    <canvas id="game-canvas" width="360" height="720"></canvas>
                     <div id="action-text-container"></div>
                 </div>
 
                 <div class="side-panel right">
                     <div class="panel-box next-box">
                         <h3>Next</h3>
-                        <canvas id="next-canvas" width="100" height="300"></canvas>
+                        <canvas id="next-canvas" width="120" height="360"></canvas>
                         <div class="controls-hint" style="text-align: center; margin-top: 1rem; color: var(--text-color); font-size: 0.8rem; opacity: 0.7;">
                             Press [ESC] to Pause
                         </div>
@@ -182,6 +202,7 @@
                 <h2 class="glitch-text" data-text="PAUSED">PAUSED</h2>
                 <div class="menu-buttons">
                     <button id="btn-resume">Resume</button>
+                    <button id="btn-pause-settings">Settings</button>
                     <button id="btn-quit">Quit to Menu</button>
                 </div>
             </div>
@@ -202,6 +223,7 @@
 
     <script src="js/storage.js"></script>
     <script src="js/audio.js"></script>
+    <script src="js/background.js"></script>
     <script src="js/input.js"></script>
     <script src="js/tetromino.js"></script>
     <script src="js/game.js"></script>

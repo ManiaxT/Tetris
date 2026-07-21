@@ -72,6 +72,10 @@ class AudioDB {
 class AudioPlayer {
     constructor() {
         this.audio = new Audio();
+        const savedSettings = (typeof Storage !== 'undefined') ? Storage.getSettings() : null;
+        const initMusicVol = (savedSettings && savedSettings.musicVolume !== undefined) ? savedSettings.musicVolume : 80;
+        this.volume = initMusicVol / 100;
+        this.audio.volume = this.volume;
         this.playlist = [];
         this.currentIndex = 0;
         this.isPlaying = false;
@@ -96,6 +100,13 @@ class AudioPlayer {
         });
 
         this.initDB();
+    }
+
+    setVolume(volPercent) {
+        this.volume = Math.max(0, Math.min(1, volPercent / 100));
+        if (this.audio) {
+            this.audio.volume = this.volume;
+        }
     }
 
     async initDB() {
@@ -335,3 +346,103 @@ class AudioPlayer {
 }
 
 const audioPlayer = new AudioPlayer();
+
+class CyberSFX {
+    constructor() {
+        this.ctx = null;
+        const savedSettings = (typeof Storage !== 'undefined') ? Storage.getSettings() : null;
+        const initSFXVol = (savedSettings && savedSettings.sfxVolume !== undefined) ? savedSettings.sfxVolume : 80;
+        this.volume = initSFXVol / 100;
+    }
+
+    init() {
+        if (!this.ctx && typeof window !== 'undefined') {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+                this.ctx = new AudioCtx();
+            }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    setVolume(volPercent) {
+        this.volume = Math.max(0, Math.min(1, volPercent / 100));
+    }
+
+    playScoreSound(linesCleared, isB2B = false) {
+        this.init();
+        if (!this.ctx || this.volume <= 0) return;
+
+        const now = this.ctx.currentTime;
+        const volMultiplier = this.volume;
+
+        const masterGain = this.ctx.createGain();
+        const baseVol = (linesCleared >= 4 ? 0.18 : 0.08) * volMultiplier;
+        const duration = linesCleared >= 4 ? 0.4 : linesCleared === 3 ? 0.25 : 0.15;
+
+        masterGain.gain.setValueAtTime(baseVol, now);
+        masterGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        // Bandpass filter for crisp digital glitch character
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(linesCleared >= 4 ? 2200 : 1600, now);
+        filter.Q.setValueAtTime(1.2, now);
+
+        masterGain.connect(filter);
+        filter.connect(this.ctx.destination);
+
+        if (linesCleared < 4) {
+            // Rapid pitch-jumping digital glitch / blip (Single, Double, Triple)
+            const osc = this.ctx.createOscillator();
+            osc.type = 'square';
+            
+            const startFreq = linesCleared === 1 ? 900 : linesCleared === 2 ? 1400 : 1800;
+            osc.frequency.setValueAtTime(startFreq, now);
+            osc.frequency.setValueAtTime(startFreq * 1.4, now + 0.025);
+            osc.frequency.setValueAtTime(startFreq * 0.7, now + 0.055);
+            if (linesCleared >= 2) {
+                osc.frequency.setValueAtTime(startFreq * 2.1, now + 0.085);
+            }
+            if (linesCleared === 3) {
+                osc.frequency.setValueAtTime(startFreq * 0.4, now + 0.12);
+                osc.frequency.setValueAtTime(startFreq * 2.6, now + 0.16);
+            }
+
+            osc.start(now);
+            osc.stop(now + duration);
+            osc.connect(masterGain);
+        } else {
+            // TETRIS / B2B: Major Cyberpunk Glitch (Sub-Bass Impact + Stuttering High-Tech Zap)
+            // 1. Sub-Bass Impact
+            const bassOsc = this.ctx.createOscillator();
+            bassOsc.type = 'sawtooth';
+            bassOsc.frequency.setValueAtTime(isB2B ? 180 : 130, now);
+            bassOsc.frequency.exponentialRampToValueAtTime(25, now + 0.35);
+            
+            const bassGain = this.ctx.createGain();
+            bassGain.gain.setValueAtTime(0.25 * volMultiplier, now);
+            bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+            
+            bassOsc.connect(bassGain);
+            bassGain.connect(this.ctx.destination);
+            bassOsc.start(now);
+            bassOsc.stop(now + 0.35);
+
+            // 2. Stuttering Glitch Zap
+            const glitchOsc = this.ctx.createOscillator();
+            glitchOsc.type = 'square';
+            const glitchSteps = [2200, 1100, 3300, 880, 4400, 1600, 5000, 750];
+            glitchSteps.forEach((f, i) => {
+                glitchOsc.frequency.setValueAtTime(isB2B ? f * 1.25 : f, now + (i * 0.035));
+            });
+
+            glitchOsc.start(now);
+            glitchOsc.stop(now + duration);
+            glitchOsc.connect(masterGain);
+        }
+    }
+}
+const cyberSFX = new CyberSFX();

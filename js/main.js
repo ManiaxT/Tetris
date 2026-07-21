@@ -34,6 +34,10 @@ document.getElementById('btn-play').addEventListener('click', () => {
         game.reset();
     }
     
+    if (typeof cyberSFX !== 'undefined') {
+        cyberSFX.init();
+    }
+    
     if (animFrame) cancelAnimationFrame(animFrame);
     game.lastTime = performance.now();
     function loop(time) {
@@ -43,7 +47,16 @@ document.getElementById('btn-play').addEventListener('click', () => {
     loop(performance.now());
 });
 
+let previousScreen = 'mainMenu';
+
 document.getElementById('btn-settings').addEventListener('click', () => {
+    previousScreen = 'mainMenu';
+    showScreen('settingsMenu');
+    loadSettingsUI();
+});
+
+document.getElementById('btn-pause-settings').addEventListener('click', () => {
+    previousScreen = 'pauseMenu';
     showScreen('settingsMenu');
     loadSettingsUI();
 });
@@ -55,7 +68,12 @@ document.getElementById('btn-scoreboard').addEventListener('click', () => {
 
 // Back Buttons
 document.getElementById('btn-settings-back').addEventListener('click', () => {
-    showScreen('mainMenu');
+    if (previousScreen === 'pauseMenu') {
+        showScreen('gameScreen');
+        document.getElementById('pause-overlay').classList.remove('hidden');
+    } else {
+        showScreen('mainMenu');
+    }
 });
 
 document.getElementById('btn-scoreboard-back').addEventListener('click', () => {
@@ -119,6 +137,40 @@ document.getElementById('btn-toggle-theme').addEventListener('click', (e) => {
     e.target.innerText = settings.theme === 'cyberpunk' ? 'Cyberpunk' : 'Modern';
 });
 
+
+
+// SFX Volume Slider Logic
+const sfxSlider = document.getElementById('slider-sfx-volume');
+const sfxValSpan = document.getElementById('sfx-volume-val');
+if (sfxSlider && sfxValSpan) {
+    sfxSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        sfxValSpan.innerText = val + '%';
+        const settings = Storage.getSettings();
+        settings.sfxVolume = val;
+        Storage.saveSettings(settings);
+        if (typeof cyberSFX !== 'undefined') {
+            cyberSFX.setVolume(val);
+        }
+    });
+}
+
+// Music Volume Slider Logic
+const musicSlider = document.getElementById('slider-music-volume');
+const musicValSpan = document.getElementById('music-volume-val');
+if (musicSlider && musicValSpan) {
+    musicSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        musicValSpan.innerText = val + '%';
+        const settings = Storage.getSettings();
+        settings.musicVolume = val;
+        Storage.saveSettings(settings);
+        if (typeof audioPlayer !== 'undefined') {
+            audioPlayer.setVolume(val);
+        }
+    });
+}
+
 // Settings Logic
 let listeningForBind = null;
 
@@ -128,6 +180,26 @@ function loadSettingsUI() {
     // Set Theme button text
     const themeBtn = document.getElementById('btn-toggle-theme');
     themeBtn.innerText = settings.theme === 'cyberpunk' ? 'Cyberpunk' : 'Modern';
+
+    // Set SFX Volume slider
+    const sfxVol = settings.sfxVolume !== undefined ? settings.sfxVolume : 80;
+    if (sfxSlider && sfxValSpan) {
+        sfxSlider.value = sfxVol;
+        sfxValSpan.innerText = sfxVol + '%';
+    }
+    if (typeof cyberSFX !== 'undefined') {
+        cyberSFX.setVolume(sfxVol);
+    }
+
+    // Set Music Volume slider
+    const musicVol = settings.musicVolume !== undefined ? settings.musicVolume : 80;
+    if (musicSlider && musicValSpan) {
+        musicSlider.value = musicVol;
+        musicValSpan.innerText = musicVol + '%';
+    }
+    if (typeof audioPlayer !== 'undefined') {
+        audioPlayer.setVolume(musicVol);
+    }
 
     document.querySelectorAll('.keybind-btn:not(#btn-toggle-theme)').forEach(btn => {
         const action = btn.dataset.action;
@@ -266,3 +338,8 @@ Input.onAction = (action, state) => {
         game.draw(); 
     }
 };
+
+// Initial UI & Audio Load on page startup
+applyTheme();
+loadSettingsUI();
+updateMainLeaderboard();

@@ -1,6 +1,6 @@
 const COLS = 10;
 const ROWS = 20;
-const BLOCK_SIZE = 30;
+const BLOCK_SIZE = 36;
 
 class Game {
     constructor() {
@@ -15,7 +15,22 @@ class Game {
         this.levelDisplay = document.getElementById('level-display');
         this.linesDisplay = document.getElementById('lines-display');
 
+        // High-DPI HD Sharpness Canvas Scaling
+        this.setupHDCanvas(this.canvas, this.ctx, COLS * BLOCK_SIZE, ROWS * BLOCK_SIZE);
+        this.setupHDCanvas(this.holdCanvas, this.holdCtx, 100, 100);
+        this.setupHDCanvas(this.nextCanvas, this.nextCtx, 120, 360);
+
         this.reset();
+    }
+
+    setupHDCanvas(canvas, ctx, width, height) {
+        if (!canvas) return;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.scale(dpr, dpr);
     }
 
     reset() {
@@ -62,23 +77,22 @@ class Game {
     }
 
     drawNext() {
-        this.nextCtx.clearRect(0, 0, this.nextCanvas.width, this.nextCanvas.height);
+        this.nextCtx.clearRect(0, 0, 120, 360);
         for(let i=0; i<3; i++) {
             if(this.bag.length > i) {
                 const nextType = this.bag[this.bag.length - 1 - i];
                 const p = new Piece(nextType);
-                const bSize = 20; 
+                const bSize = 24; 
                 const shape = p.shape;
                 const pw = shape[0].length * bSize;
                 const ph = shape.length * bSize;
-                const ox = (this.nextCanvas.width - pw) / 2;
-                const oy = (100 - ph) / 2 + (i * 100);
+                const ox = (120 - pw) / 2;
+                const oy = (110 - ph) / 2 + (i * 115);
 
-                this.nextCtx.fillStyle = p.color;
                 for (let r = 0; r < shape.length; r++) {
                     for (let c = 0; c < shape[r].length; c++) {
                         if (shape[r][c]) {
-                            this.nextCtx.fillRect(ox + c * bSize, oy + r * bSize, bSize - 1, bSize - 1);
+                            this.renderBlock(this.nextCtx, ox + c * bSize, oy + r * bSize, bSize - 1, p.color);
                         }
                     }
                 }
@@ -87,46 +101,98 @@ class Game {
     }
 
     drawHold() {
-        this.holdCtx.clearRect(0, 0, this.holdCanvas.width, this.holdCanvas.height);
+        this.holdCtx.clearRect(0, 0, 100, 100);
         if (this.holdPiece) {
-            this.drawPieceCentered(this.holdCtx, this.holdPiece, this.holdCanvas.width, this.holdCanvas.height);
+            this.drawPieceCentered(this.holdCtx, this.holdPiece, 100, 100);
         }
+    }
+
+    getLevelColor(baseColor, level) {
+        if (!baseColor || level <= 1) return baseColor;
+        
+        // Convert hex or color to HSL and shift hue by +35deg per level
+        let hex = baseColor.replace('#', '');
+        if (hex.length === 3) {
+            hex = hex.split('').map(c => c + c).join('');
+        }
+        if (hex.length !== 6) return baseColor;
+
+        let r = parseInt(hex.substring(0, 2), 16) / 255;
+        let g = parseInt(hex.substring(2, 4), 16) / 255;
+        let b = parseInt(hex.substring(4, 6), 16) / 255;
+
+        let max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h = 0, s = 0, l = (max + min) / 2;
+
+        if (max !== min) {
+            let d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+
+        // Shift hue based on current level (+35 degrees per level)
+        let shiftDegrees = ((level - 1) * 35) % 360;
+        let newHue = (h * 360 + shiftDegrees) % 360;
+
+        return `hsl(${Math.round(newHue)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
     }
 
     renderBlock(ctx, x, y, size, color) {
         const isCyberpunk = document.body.getAttribute('data-theme') === 'cyberpunk';
+        const finalColor = this.getLevelColor(color, this.level || 1);
         
+        ctx.save();
         if (isCyberpunk) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            // Dark base fill
+            ctx.fillStyle = 'rgba(6, 2, 18, 0.9)';
             ctx.fillRect(x, y, size, size);
 
-            ctx.shadowBlur = size / 2;
-            ctx.shadowColor = color;
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, y, size, size);
+            // Glowing neon stroke
+            ctx.shadowBlur = Math.max(6, size / 2.5);
+            ctx.shadowColor = finalColor;
+            ctx.strokeStyle = finalColor;
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
             
-            const padding = Math.max(1, Math.floor(size / 4));
+            // Inner vibrant core
+            const padding = Math.max(2, Math.floor(size / 3.5));
             ctx.shadowBlur = padding;
-            ctx.fillStyle = color;
+            ctx.fillStyle = finalColor;
             ctx.fillRect(x + padding, y + padding, size - padding * 2, size - padding * 2);
-            
-            ctx.lineWidth = 1;
-            ctx.shadowBlur = 0;
+
+            // Inner top-left highlight accent
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.fillRect(x + padding, y + padding, size - padding * 2, 2);
+            ctx.fillRect(x + padding, y + padding, 2, size - padding * 2);
         } else {
-            ctx.fillStyle = color;
+            // Modern High-Res HD 3D Block
+            ctx.fillStyle = finalColor;
             ctx.fillRect(x, y, size, size);
+
+            // Bevel highlights
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx.fillRect(x, y, size, 3);
+            ctx.fillRect(x, y, 3, size);
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(x, y + size - 3, size, 3);
+            ctx.fillRect(x + size - 3, y, 3, size);
             
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = color;
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.lineWidth = 1;
             ctx.strokeRect(x, y, size, size);
-            ctx.shadowBlur = 0;
         }
+        ctx.restore();
     }
 
     drawPieceCentered(ctx, piece, width, height) {
         const shape = piece.shape;
-        const bSize = 20; 
+        const bSize = 25; 
         const pw = shape[0].length * bSize;
         const ph = shape.length * bSize;
         const ox = (width - pw) / 2;
@@ -187,21 +253,43 @@ class Game {
         }
 
         const oldShape = this.currentPiece.shape;
+        const oldX = this.currentPiece.x;
+        const oldY = this.currentPiece.y;
+        
         this.currentPiece.shape = newShape;
 
-        // Basic wall kick 
-        if (this.collides()) {
-            this.currentPiece.x++;
-            if(this.collides()) {
-                this.currentPiece.x -= 2;
-                if(this.collides()) {
-                    this.currentPiece.x++;
-                    this.currentPiece.shape = oldShape; // Fail
-                }
+        // Modern SRS (Super Rotation System) Wall Kick Offsets
+        let kickOffsets = [];
+        if (this.currentPiece.type === 'I') {
+            // SRS Kicks for 4x4 I-piece
+            kickOffsets = [
+                [0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2], [2, 0], [-1, 0], [2, -1], [-1, 2], [0, -1], [0, -2]
+            ];
+        } else {
+            // SRS Kicks for 3x3 pieces (J, L, S, T, Z)
+            kickOffsets = [
+                [0, 0], [-1, 0], [1, 0], [0, -1], [-1, -1], [1, -1], [-2, 0], [2, 0], [-1, 1], [1, 1], [0, -2]
+            ];
+        }
+
+        let success = false;
+        for (const [dx, dy] of kickOffsets) {
+            this.currentPiece.x = oldX + dx;
+            this.currentPiece.y = oldY + dy;
+            if (!this.collides()) {
+                success = true;
+                break;
             }
         }
-        
-        this.resetLockDelayIfTouching();
+
+        if (!success) {
+            // Revert if all kick offsets collide
+            this.currentPiece.shape = oldShape;
+            this.currentPiece.x = oldX;
+            this.currentPiece.y = oldY;
+        } else {
+            this.resetLockDelayIfTouching();
+        }
     }
 
     collides(piece = this.currentPiece) {
@@ -294,6 +382,7 @@ class Game {
         }
 
         container.appendChild(el);
+
         setTimeout(() => {
             if (container.contains(el)) container.removeChild(el);
         }, 1500);
@@ -338,6 +427,12 @@ class Game {
             this.score += points * this.level;
             
             this.showActionText(actionName);
+            if (typeof cyberSFX !== 'undefined') {
+                cyberSFX.playScoreSound(linesCleared, actionName.includes('B2B'));
+            }
+            if (typeof backgroundFX !== 'undefined') {
+                backgroundFX.triggerScoreBurst(linesCleared);
+            }
             if (document.body.getAttribute('data-theme') === 'cyberpunk') {
                 document.body.classList.remove('screen-glitch', 'screen-glitch-medium', 'screen-glitch-weak');
                 // Force reflow
@@ -352,9 +447,20 @@ class Game {
             }
             
             // Level up every 10 lines
-            if (Math.floor(this.lines / 10) + 1 > this.level) {
-                this.level++;
+            const newLevel = Math.floor(this.lines / 10) + 1;
+            if (newLevel > this.level) {
+                this.level = newLevel;
                 this.dropInterval = Math.max(100, 1000 - (this.level - 1) * 100);
+                if (typeof backgroundFX !== 'undefined') {
+                    backgroundFX.setHueShift((this.level - 1) * 35);
+                }
+                
+                setTimeout(() => {
+                    this.showActionText('LEVEL ' + this.level + '!');
+                    if (typeof cyberSFX !== 'undefined') {
+                        cyberSFX.playScoreSound(4, true);
+                    }
+                }, 300);
             }
             this.updateStats();
         }
@@ -476,7 +582,7 @@ class Game {
             this.activeDir = null;
         }
 
-        const currentDropInterval = Input.keys[Input.settings.softDrop] ? this.dropInterval / 10 : this.dropInterval;
+        const currentDropInterval = Input.keys[Input.settings.softDrop] ? this.dropInterval / 30 : this.dropInterval;
 
         if (this.isLocking) {
             this.lockTimer += deltaTime;
