@@ -15,7 +15,8 @@ class Game {
         this.levelDisplay = document.getElementById('level-display');
         this.linesDisplay = document.getElementById('lines-display');
 
-        // Cache for level-shifted block colors (color+level -> hsl string)
+        // Cache for level-shifted block colors (color+level -> hsl string) so we don't
+        // redo the hex->HSL conversion for every block on every frame.
         this.levelColorCache = new Map();
 
         // High-DPI HD Sharpness Canvas Scaling
@@ -112,11 +113,10 @@ class Game {
 
     getLevelColor(baseColor, level) {
         if (!baseColor || level <= 1) return baseColor;
-        
-        const cacheKey = `${baseColor}_${level}`;
-        if (this.levelColorCache.has(cacheKey)) {
-            return this.levelColorCache.get(cacheKey);
-        }
+
+        const cacheKey = baseColor + '_' + level;
+        const cached = this.levelColorCache.get(cacheKey);
+        if (cached !== undefined) return cached;
 
         // Convert hex or color to HSL and shift hue by +35deg per level
         let hex = baseColor.replace('#', '');
@@ -146,61 +146,37 @@ class Game {
         // Shift hue based on current level (+35 degrees per level)
         let shiftDegrees = ((level - 1) * 35) % 360;
         let newHue = (h * 360 + shiftDegrees) % 360;
+
         const result = `hsl(${Math.round(newHue)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
         this.levelColorCache.set(cacheKey, result);
         return result;
     }
 
     renderBlock(ctx, x, y, size, color) {
-        const theme = document.body.getAttribute('data-theme') || 'modern';
+        const isCyberpunk = document.body.getAttribute('data-theme') === 'cyberpunk';
         const finalColor = this.getLevelColor(color, this.level || 1);
         
         ctx.save();
-        if (theme === 'nes') {
-            // Authentic 8-Bit NES Tetris Block Rendering
-            const border = Math.max(1, Math.floor(size / 14));
-            const inset = Math.max(2, Math.floor(size / 9));
-            const dotSize = Math.max(3, Math.floor(size / 5.5));
-            const dotPos = Math.max(4, Math.floor(size / 5));
-
-            // Outer black border
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(x, y, size, size);
-
-            // Base NES color fill
-            ctx.fillStyle = finalColor;
-            ctx.fillRect(x + border, y + border, size - border * 2, size - border * 2);
-
-            // Top & Left 8-bit bevel highlight
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-            ctx.fillRect(x + border, y + border, size - border * 2, inset);
-            ctx.fillRect(x + border, y + border, inset, size - border * 2);
-
-            // Bottom & Right 8-bit shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(x + border, y + size - border - inset, size - border * 2, inset);
-            ctx.fillRect(x + size - border - inset, y + border, inset, size - border * 2);
-
-            // Top-left 8-bit pixel highlight square
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(x + dotPos, y + dotPos, dotSize, dotSize);
-        } else if (theme === 'cyberpunk') {
+        if (isCyberpunk) {
             // Dark base fill
-            ctx.fillStyle = 'rgba(6, 2, 18, 0.92)';
+            ctx.fillStyle = 'rgba(6, 2, 18, 0.9)';
             ctx.fillRect(x, y, size, size);
 
-            // Vibrant neon stroke
+            // Glowing neon stroke
+            ctx.shadowBlur = Math.max(6, size / 2.5);
+            ctx.shadowColor = finalColor;
             ctx.strokeStyle = finalColor;
             ctx.lineWidth = 2.5;
             ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
             
             // Inner vibrant core
             const padding = Math.max(2, Math.floor(size / 3.5));
+            ctx.shadowBlur = padding;
             ctx.fillStyle = finalColor;
             ctx.fillRect(x + padding, y + padding, size - padding * 2, size - padding * 2);
 
             // Inner top-left highlight accent
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
             ctx.fillRect(x + padding, y + padding, size - padding * 2, 2);
             ctx.fillRect(x + padding, y + padding, 2, size - padding * 2);
         } else {
@@ -265,9 +241,6 @@ class Game {
             this.currentPiece.y -= dy;
             return false;
         }
-        if (dx !== 0 && typeof cyberSFX !== 'undefined') {
-            cyberSFX.playMoveSound();
-        }
         return true;
     }
 
@@ -325,9 +298,6 @@ class Game {
             this.currentPiece.x = oldX;
             this.currentPiece.y = oldY;
         } else {
-            if (typeof cyberSFX !== 'undefined') {
-                cyberSFX.playRotateSound();
-            }
             this.resetLockDelayIfTouching();
         }
     }
@@ -361,15 +331,10 @@ class Game {
     }
 
     hardDrop() {
-        this.wasHardDrop = true;
         while(this.move(0, 1)) {
             this.score += 2; 
         }
-        if (typeof cyberSFX !== 'undefined') {
-            cyberSFX.playHardDropSound();
-        }
         this.lock();
-        this.wasHardDrop = false;
     }
 
     resetLockDelay() {
@@ -393,9 +358,6 @@ class Game {
     }
 
     lock() {
-        if (!this.wasHardDrop && typeof cyberSFX !== 'undefined') {
-            cyberSFX.playDropSound();
-        }
         for (let r = 0; r < this.currentPiece.shape.length; r++) {
             for (let c = 0; c < this.currentPiece.shape[r].length; c++) {
                 if (this.currentPiece.shape[r][c]) {
@@ -408,6 +370,10 @@ class Game {
             }
         }
         this.clearLines();
+        // Always refresh the score/level/lines display here - clearLines() only updates it
+        // when lines were actually cleared, which previously left hard-drop bonus points
+        // (and any other score change) invisible until the next line clear.
+        this.updateStats();
         this.currentPiece = this.getNextPiece();
         this.canHold = true;
         this.resetLockDelay();
@@ -506,11 +472,10 @@ class Game {
                 setTimeout(() => {
                     this.showActionText('LEVEL ' + this.level + '!');
                     if (typeof cyberSFX !== 'undefined') {
-                        cyberSFX.playLevelUpSound();
+                        cyberSFX.playScoreSound(4, true);
                     }
                 }, 300);
             }
-            this.updateStats();
         }
     }
 
@@ -522,9 +487,6 @@ class Game {
 
     gameOver() {
         this.isGameOver = true;
-        if (typeof cyberSFX !== 'undefined') {
-            cyberSFX.playGameOverSound();
-        }
         document.getElementById('final-score-val').innerText = this.score;
         document.getElementById('name-input-container').classList.remove('hidden');
         document.getElementById('game-over-buttons').classList.add('hidden');
@@ -533,10 +495,16 @@ class Game {
     }
 
     getGhostY() {
-        let ghostY = this.currentPiece.y;
-        while (!this.collides({...this.currentPiece, y: ghostY + 1})) {
+        // Temporarily move the live piece down instead of spreading a new object into
+        // collides() on every iteration - avoids an allocation per step, every frame.
+        const originalY = this.currentPiece.y;
+        let ghostY = originalY;
+        while (true) {
+            this.currentPiece.y = ghostY + 1;
+            if (this.collides()) break;
             ghostY++;
         }
+        this.currentPiece.y = originalY;
         return ghostY;
     }
 

@@ -143,7 +143,9 @@ class AudioPlayer {
         }
     }
 
-    // Generates a non-colliding filename (e.g. "song (2).mp3")
+    // Generates a non-colliding filename (e.g. "song (2).mp3") so that uploading two
+    // files with the same name doesn't cause one to silently overwrite the other in
+    // IndexedDB (which is keyed by name) while the UI still shows both as separate tracks.
     getUniqueName(name, existingNames) {
         if (!existingNames.has(name)) return name;
         const dotIdx = name.lastIndexOf('.');
@@ -168,6 +170,7 @@ class AudioPlayer {
                 let fileToStore = file;
                 const uniqueName = this.getUniqueName(file.name, existingNames);
                 if (uniqueName !== file.name) {
+                    // Re-wrap so the in-memory playlist and the IndexedDB record agree on the name
                     fileToStore = new File([file], uniqueName, { type: file.type });
                 }
                 existingNames.add(fileToStore.name);
@@ -286,16 +289,10 @@ class AudioPlayer {
         const playBtns = document.querySelectorAll('.btn-player-playpause');
         const modeBtns = document.querySelectorAll('.btn-player-mode');
         
-        let modeIcon = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>';
+        let modeIcon = '[ALL]';
         let modeTitle = 'Loop All';
-        if (this.playMode === 1) { 
-            modeIcon = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>'; 
-            modeTitle = 'Loop One'; 
-        }
-        if (this.playMode === 2) { 
-            modeIcon = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>'; 
-            modeTitle = 'Shuffle'; 
-        }
+        if (this.playMode === 1) { modeIcon = '[ONE]'; modeTitle = 'Loop One'; }
+        if (this.playMode === 2) { modeIcon = '[RND]'; modeTitle = 'Shuffle'; }
         
         titleEls.forEach(titleEl => {
             if (this.playlist.length > 0) {
@@ -306,14 +303,11 @@ class AudioPlayer {
         });
         
         playBtns.forEach(playBtn => {
-            playBtn.innerHTML = this.isPlaying 
-                ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>'
-                : '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
-            playBtn.title = this.isPlaying ? "Pause" : "Play";
+            playBtn.innerText = this.isPlaying ? 'PAUSE' : 'PLAY';
         });
         
         modeBtns.forEach(modeBtn => {
-            modeBtn.innerHTML = modeIcon;
+            modeBtn.innerText = modeIcon;
             modeBtn.title = modeTitle;
         });
     }
@@ -418,266 +412,13 @@ class CyberSFX {
         this.volume = Math.max(0, Math.min(1, volPercent / 100));
     }
 
-    getTheme() {
-        if (typeof document !== 'undefined' && document.body) {
-            return document.body.getAttribute('data-theme') || 'modern';
-        }
-        return 'modern';
-    }
-
-    playMoveSound() {
-        this.init();
-        if (!this.ctx || this.volume <= 0) return;
-        const theme = this.getTheme();
-        const now = this.ctx.currentTime;
-
-        if (theme === 'nes') {
-            // Authentic NES Tetris Move Sound (140Hz 25% duty pulse blip)
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(140, now);
-            gain.gain.setValueAtTime(0.14 * this.volume, now);
-            gain.gain.setValueAtTime(0.001, now + 0.018);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.018);
-        } else {
-            // Soft click for Modern/Cyberpunk
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(320, now);
-            gain.gain.setValueAtTime(0.04 * this.volume, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.015);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.015);
-        }
-    }
-
-    playRotateSound() {
-        this.init();
-        if (!this.ctx || this.volume <= 0) return;
-        const theme = this.getTheme();
-        const now = this.ctx.currentTime;
-
-        if (theme === 'nes') {
-            // Authentic NES Tetris Rotate Sound (E4 330Hz -> A4 440Hz pulse jump)
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(330, now);
-            osc.frequency.setValueAtTime(440, now + 0.02);
-            gain.gain.setValueAtTime(0.16 * this.volume, now);
-            gain.gain.setValueAtTime(0.001, now + 0.045);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.045);
-        } else {
-            // Modern/Cyberpunk rotate blip
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(350, now);
-            osc.frequency.exponentialRampToValueAtTime(550, now + 0.03);
-            gain.gain.setValueAtTime(0.06 * this.volume, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.03);
-        }
-    }
-
-    playDropSound() {
-        this.init();
-        if (!this.ctx || this.volume <= 0) return;
-        const theme = this.getTheme();
-        const now = this.ctx.currentTime;
-
-        if (theme === 'nes') {
-            // Authentic NES Tetris Soft Drop / Lock Click (95Hz square)
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(95, now);
-            gain.gain.setValueAtTime(0.15 * this.volume, now);
-            gain.gain.setValueAtTime(0.001, now + 0.022);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.022);
-        } else {
-            // Modern/Cyberpunk land thud
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(120, now);
-            osc.frequency.exponentialRampToValueAtTime(40, now + 0.04);
-            gain.gain.setValueAtTime(0.08 * this.volume, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.04);
-        }
-    }
-
-    playHardDropSound() {
-        this.init();
-        if (!this.ctx || this.volume <= 0) return;
-        const theme = this.getTheme();
-        const now = this.ctx.currentTime;
-
-        if (theme === 'nes') {
-            // Authentic NES 8-bit Hard Drop Sweep (380Hz -> 70Hz)
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(380, now);
-            osc.frequency.exponentialRampToValueAtTime(70, now + 0.045);
-            gain.gain.setValueAtTime(0.18 * this.volume, now);
-            gain.gain.setValueAtTime(0.001, now + 0.045);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.045);
-        } else {
-            // Modern hard drop
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(320, now);
-            osc.frequency.exponentialRampToValueAtTime(50, now + 0.05);
-            gain.gain.setValueAtTime(0.12 * this.volume, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.05);
-        }
-    }
-
     playScoreSound(linesCleared, isB2B = false) {
         this.init();
         if (!this.ctx || this.volume <= 0) return;
-        const theme = this.getTheme();
+
         const now = this.ctx.currentTime;
-
-        if (theme === 'nes') {
-            // Authentic NES Tetris Line Clear Sound Effects
-            const vol = 0.22 * this.volume;
-            if (linesCleared === 1) {
-                // 1 Line: G4 -> C5
-                const notes = [392.00, 523.25];
-                notes.forEach((freq, i) => {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(freq, now + i * 0.035);
-                    gain.gain.setValueAtTime(vol, now + i * 0.035);
-                    const dur = i === 1 ? 0.06 : 0.03;
-                    gain.gain.setValueAtTime(0.001, now + i * 0.035 + dur);
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start(now + i * 0.035);
-                    osc.stop(now + i * 0.035 + dur);
-                });
-            } else if (linesCleared === 2) {
-                // 2 Lines: G4 -> C5 -> E5
-                const notes = [392.00, 523.25, 659.25];
-                notes.forEach((freq, i) => {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(freq, now + i * 0.03);
-                    gain.gain.setValueAtTime(vol, now + i * 0.03);
-                    const dur = i === 2 ? 0.07 : 0.028;
-                    gain.gain.setValueAtTime(0.001, now + i * 0.03 + dur);
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start(now + i * 0.03);
-                    osc.stop(now + i * 0.03 + dur);
-                });
-            } else if (linesCleared === 3) {
-                // 3 Lines: G4 -> C5 -> E5 -> G5
-                const notes = [392.00, 523.25, 659.25, 783.99];
-                notes.forEach((freq, i) => {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(freq, now + i * 0.028);
-                    gain.gain.setValueAtTime(vol, now + i * 0.028);
-                    const dur = i === 3 ? 0.08 : 0.026;
-                    gain.gain.setValueAtTime(0.001, now + i * 0.028 + dur);
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start(now + i * 0.028);
-                    osc.stop(now + i * 0.028 + dur);
-                });
-            } else if (linesCleared >= 4) {
-                // TETRIS (4 Lines): Famous NES Tetris 2-Part Harmony Fanfare!
-                // Dual Voice 3rds/Harmonies:
-                const voice1 = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
-                const voice2 = [659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00];
-                const stepDur = 0.055;
-
-                voice1.forEach((f1, i) => {
-                    const f2 = voice2[i];
-                    const startTime = now + i * stepDur;
-                    const isLast = i === voice1.length - 1;
-                    const dur = isLast ? 0.28 : stepDur * 0.95;
-
-                    // Voice 1
-                    const osc1 = this.ctx.createOscillator();
-                    const gain1 = this.ctx.createGain();
-                    osc1.type = 'square';
-                    osc1.frequency.setValueAtTime(f1, startTime);
-                    gain1.gain.setValueAtTime(vol * 0.9, startTime);
-                    gain1.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
-                    osc1.connect(gain1);
-                    gain1.connect(this.ctx.destination);
-                    osc1.start(startTime);
-                    osc1.stop(startTime + dur);
-
-                    // Voice 2
-                    const osc2 = this.ctx.createOscillator();
-                    const gain2 = this.ctx.createGain();
-                    osc2.type = 'square';
-                    osc2.frequency.setValueAtTime(f2, startTime);
-                    gain2.gain.setValueAtTime(vol * 0.9, startTime);
-                    gain2.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
-                    osc2.connect(gain2);
-                    gain2.connect(this.ctx.destination);
-                    osc2.start(startTime);
-                    osc2.stop(startTime + dur);
-                });
-
-                // NES Triangle Bass Line (C3 -> E3 -> G3 -> C4 -> C4)
-                const bassNotes = [130.81, 164.81, 196.00, 261.63, 261.63];
-                bassNotes.forEach((freq, i) => {
-                    const bOsc = this.ctx.createOscillator();
-                    const bGain = this.ctx.createGain();
-                    bOsc.type = 'triangle';
-                    bOsc.frequency.setValueAtTime(freq, now + i * 0.065);
-                    bGain.gain.setValueAtTime(vol * 1.4, now + i * 0.065);
-                    const dur = i === bassNotes.length - 1 ? 0.25 : 0.06;
-                    bGain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.065 + dur);
-                    bOsc.connect(bGain);
-                    bGain.connect(this.ctx.destination);
-                    bOsc.start(now + i * 0.065);
-                    bOsc.stop(now + i * 0.065 + dur);
-                });
-            }
-            return;
-        }
-
-        // Cyberpunk / Modern theme playScoreSound
         const volMultiplier = this.volume;
+
         const masterGain = this.ctx.createGain();
         const baseVol = (linesCleared >= 4 ? 0.18 : 0.08) * volMultiplier;
         const duration = linesCleared >= 4 ? 0.4 : linesCleared === 3 ? 0.25 : 0.15;
@@ -685,6 +426,7 @@ class CyberSFX {
         masterGain.gain.setValueAtTime(baseVol, now);
         masterGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
+        // Bandpass filter for crisp digital glitch character
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'bandpass';
         filter.frequency.setValueAtTime(linesCleared >= 4 ? 2200 : 1600, now);
@@ -694,8 +436,10 @@ class CyberSFX {
         filter.connect(this.ctx.destination);
 
         if (linesCleared < 4) {
+            // Rapid pitch-jumping digital glitch / blip (Single, Double, Triple)
             const osc = this.ctx.createOscillator();
             osc.type = 'square';
+            
             const startFreq = linesCleared === 1 ? 900 : linesCleared === 2 ? 1400 : 1800;
             osc.frequency.setValueAtTime(startFreq, now);
             osc.frequency.setValueAtTime(startFreq * 1.4, now + 0.025);
@@ -712,6 +456,8 @@ class CyberSFX {
             osc.stop(now + duration);
             osc.connect(masterGain);
         } else {
+            // TETRIS / B2B: Major Cyberpunk Glitch (Sub-Bass Impact + Stuttering High-Tech Zap)
+            // 1. Sub-Bass Impact
             const bassOsc = this.ctx.createOscillator();
             bassOsc.type = 'sawtooth';
             bassOsc.frequency.setValueAtTime(isB2B ? 180 : 130, now);
@@ -726,6 +472,7 @@ class CyberSFX {
             bassOsc.start(now);
             bassOsc.stop(now + 0.35);
 
+            // 2. Stuttering Glitch Zap
             const glitchOsc = this.ctx.createOscillator();
             glitchOsc.type = 'square';
             const glitchSteps = [2200, 1100, 3300, 880, 4400, 1600, 5000, 750];
@@ -736,68 +483,6 @@ class CyberSFX {
             glitchOsc.start(now);
             glitchOsc.stop(now + duration);
             glitchOsc.connect(masterGain);
-        }
-    }
-
-    playLevelUpSound() {
-        this.init();
-        if (!this.ctx || this.volume <= 0) return;
-        const theme = this.getTheme();
-        const now = this.ctx.currentTime;
-
-        if (theme === 'nes') {
-            const notes = [392.00, 523.25, 659.25, 783.99, 1046.50];
-            notes.forEach((freq, i) => {
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(freq, now + i * 0.05);
-                gain.gain.setValueAtTime(0.18 * this.volume, now + i * 0.05);
-                const dur = i === notes.length - 1 ? 0.2 : 0.045;
-                gain.gain.setValueAtTime(0.001, now + i * 0.05 + dur);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now + i * 0.05);
-                osc.stop(now + i * 0.05 + dur);
-            });
-        } else {
-            this.playScoreSound(4, true);
-        }
-    }
-
-    playGameOverSound() {
-        this.init();
-        if (!this.ctx || this.volume <= 0) return;
-        const theme = this.getTheme();
-        const now = this.ctx.currentTime;
-
-        if (theme === 'nes') {
-            const notes = [523.25, 493.88, 466.16, 440.00, 415.30, 392.00, 311.13, 261.63];
-            notes.forEach((freq, i) => {
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(freq, now + i * 0.07);
-                gain.gain.setValueAtTime(0.18 * this.volume, now + i * 0.07);
-                const dur = i === notes.length - 1 ? 0.35 : 0.065;
-                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + dur);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now + i * 0.07);
-                osc.stop(now + i * 0.07 + dur);
-            });
-        } else {
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(220, now);
-            osc.frequency.exponentialRampToValueAtTime(40, now + 0.6);
-            gain.gain.setValueAtTime(0.2 * this.volume, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.6);
         }
     }
 }

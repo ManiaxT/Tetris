@@ -13,7 +13,8 @@ class BackgroundFX {
         this.hueShift = 0;
         this.glitchTimer = 0;
 
-        // Cached sun gradients for performance optimization
+        // Cached sun gradients: only depend on hueShift + canvas size, not on time,
+        // so they don't need to be rebuilt on every single animation frame.
         this._sunGradCacheKey = null;
         this._sunGradCache = null;
         this._sunGlowCache = null;
@@ -38,6 +39,7 @@ class BackgroundFX {
         this.canvas.style.width = w + 'px';
         this.canvas.style.height = h + 'px';
         this.ctx.scale(dpr, dpr);
+        // Size changed, so cached sun gradients (built from sunX/sunY/sunRadius) are stale.
         this._sunGradCacheKey = null;
     }
 
@@ -127,6 +129,7 @@ class BackgroundFX {
 
     setHueShift(degrees) {
         this.hueShift = degrees;
+        // hueShift changed, so cached sun gradients are stale.
         this._sunGradCacheKey = null;
     }
 
@@ -201,10 +204,7 @@ class BackgroundFX {
     }
 
     animate() {
-        const currentTheme = document.body.getAttribute('data-theme') || 'modern';
-        const isCyberpunk = currentTheme === 'cyberpunk';
-        const isNES = currentTheme === 'nes';
-
+        const isCyberpunk = document.body.getAttribute('data-theme') === 'cyberpunk';
         const w = window.innerWidth;
         const h = window.innerHeight;
         this.ctx.clearRect(0, 0, w, h);
@@ -215,58 +215,57 @@ class BackgroundFX {
             this.glitchTimer--;
         }
 
-        if (isNES) {
-            // NES 8-Bit Dark Retro Background (Deep Space with Vintage CRT Center Glow)
-            this.ctx.fillStyle = '#050512';
-            this.ctx.fillRect(0, 0, w, h);
-
-            // Vintage NES Center CRT Arcade Backlight
-            const nesGlow = this.ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.1, w / 2, h / 2, Math.min(w, h) * 0.7);
-            nesGlow.addColorStop(0, 'rgba(28, 28, 64, 0.45)');
-            nesGlow.addColorStop(0.6, 'rgba(12, 12, 32, 0.25)');
-            nesGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            this.ctx.fillStyle = nesGlow;
-            this.ctx.fillRect(0, 0, w, h);
-        } else if (isCyberpunk) {
+        if (isCyberpunk) {
             // 1. Sun & Laser Beams
             const sunX = w / 2;
             const sunY = h * 0.45;
             const sunRadius = Math.min(w, h) * 0.25;
 
-            // Volumetric Sun Laser Rays (Optimized 6 rays)
+            // Volumetric Sun Laser Rays (Fanning outwards)
             this.ctx.save();
-            const rayCount = 6;
+            const rayCount = 12;
             for (let i = 0; i < rayCount; i++) {
-                const angle = (i / rayCount) * Math.PI * 2 + (now * 0.04);
+                const angle = (i / rayCount) * Math.PI * 2 + (now * 0.05);
                 const rx = sunX + Math.cos(angle) * w;
                 const ry = sunY + Math.sin(angle) * h;
                 const rayGrad = this.ctx.createLinearGradient(sunX, sunY, rx, ry);
-                rayGrad.addColorStop(0, `hsla(${(300 + this.hueShift) % 360}, 100%, 65%, 0.06)`);
+                rayGrad.addColorStop(0, `hsla(${(300 + this.hueShift) % 360}, 100%, 65%, 0.08)`);
                 rayGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                 this.ctx.fillStyle = rayGrad;
                 this.ctx.beginPath();
                 this.ctx.moveTo(sunX, sunY);
-                this.ctx.arc(sunX, sunY, Math.max(w, h), angle - 0.09, angle + 0.09);
+                this.ctx.arc(sunX, sunY, Math.max(w, h), angle - 0.08, angle + 0.08);
                 this.ctx.closePath();
                 this.ctx.fill();
             }
             this.ctx.restore();
 
-            // Sun Outer Glow
-            const sunGlow = this.ctx.createRadialGradient(sunX, sunY, sunRadius * 0.2, sunX, sunY, sunRadius * 1.8);
-            sunGlow.addColorStop(0, `hsla(${(320 + this.hueShift) % 360}, 100%, 65%, 0.35)`);
-            sunGlow.addColorStop(0.5, `hsla(${(280 + this.hueShift) % 360}, 100%, 50%, 0.12)`);
-            sunGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            // Sun Outer Glow + Sun Body Gradient (cached - these only depend on
+            // hueShift and canvas size, not on time, so we don't need to recreate
+            // them on every frame).
+            const sunCacheKey = this.hueShift + '_' + w + '_' + h;
+            if (this._sunGradCacheKey !== sunCacheKey) {
+                const sunGlow = this.ctx.createRadialGradient(sunX, sunY, sunRadius * 0.2, sunX, sunY, sunRadius * 1.8);
+                sunGlow.addColorStop(0, `hsla(${(320 + this.hueShift) % 360}, 100%, 65%, 0.35)`);
+                sunGlow.addColorStop(0.5, `hsla(${(280 + this.hueShift) % 360}, 100%, 50%, 0.12)`);
+                sunGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                this._sunGlowCache = sunGlow;
+
+                const sunGrad = this.ctx.createLinearGradient(sunX, sunY - sunRadius, sunX, sunY + sunRadius);
+                sunGrad.addColorStop(0, `hsl(${(50 + this.hueShift) % 360}, 100%, 60%)`);
+                sunGrad.addColorStop(0.5, `hsl(${(340 + this.hueShift) % 360}, 100%, 55%)`);
+                sunGrad.addColorStop(1, `hsl(${(280 + this.hueShift) % 360}, 100%, 45%)`);
+                this._sunGradCache = sunGrad;
+
+                this._sunGradCacheKey = sunCacheKey;
+            }
+            const sunGlow = this._sunGlowCache;
+            const sunGrad = this._sunGradCache;
+
             this.ctx.fillStyle = sunGlow;
             this.ctx.beginPath();
             this.ctx.arc(sunX, sunY, sunRadius * 1.8, 0, Math.PI * 2);
             this.ctx.fill();
-
-            // Sun Body Gradient
-            const sunGrad = this.ctx.createLinearGradient(sunX, sunY - sunRadius, sunX, sunY + sunRadius);
-            sunGrad.addColorStop(0, `hsl(${(50 + this.hueShift) % 360}, 100%, 60%)`);
-            sunGrad.addColorStop(0.5, `hsl(${(340 + this.hueShift) % 360}, 100%, 55%)`);
-            sunGrad.addColorStop(1, `hsl(${(280 + this.hueShift) % 360}, 100%, 45%)`);
 
             this.ctx.save();
             this.ctx.beginPath();
@@ -302,7 +301,7 @@ class BackgroundFX {
             const origX = shape.x;
             const origY = shape.y;
 
-            let drawColor = isNES ? (shape.color || '#00f0f0') : (isCyberpunk ? shape.color : 'rgba(255, 255, 255, 0.4)');
+            let drawColor = isCyberpunk ? shape.color : 'rgba(255, 255, 255, 0.4)';
             if (isGlitching) {
                 shape.x += (Math.random() - 0.5) * 45;
                 shape.y += (Math.random() - 0.5) * 45;
@@ -311,8 +310,10 @@ class BackgroundFX {
 
             this.ctx.save();
             this.ctx.strokeStyle = drawColor;
-            this.ctx.lineWidth = isGlitching ? 3.5 : (isNES ? 2.5 : (isCyberpunk ? 2.5 : 1.8));
-            this.ctx.globalAlpha = isGlitching ? 0.9 : (isNES ? 0.7 : (isCyberpunk ? 0.65 : 0.25));
+            this.ctx.lineWidth = isGlitching ? 3.5 : (isCyberpunk ? 2.5 : 1.8);
+            this.ctx.globalAlpha = isGlitching ? 0.9 : (isCyberpunk ? 0.6 : 0.25);
+            this.ctx.shadowBlur = isGlitching ? 25 : (isCyberpunk ? 16 : 4);
+            this.ctx.shadowColor = drawColor;
 
             shape.cubes.forEach(c => {
                 this.drawWireCube(c[0], c[1], c[2], shape);
@@ -333,7 +334,28 @@ class BackgroundFX {
             shape.y = origY;
         }
 
-        // 3. Animate Floating Dust / Stars Particles
+        // 3. Animate Bursts (Shockwaves)
+        for (let i = this.bursts.length - 1; i >= 0; i--) {
+            const b = this.bursts[i];
+            b.radius += (b.maxRadius - b.radius) * 0.08;
+            b.alpha -= 0.02;
+
+            if (b.alpha <= 0) {
+                this.bursts.splice(i, 1);
+                continue;
+            }
+
+            this.ctx.save();
+            this.ctx.strokeStyle = b.color;
+            this.ctx.globalAlpha = b.alpha * 0.6;
+            this.ctx.lineWidth = 3;
+            this.ctx.beginPath();
+            this.ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+            this.ctx.stroke();
+            this.ctx.restore();
+        }
+
+        // 4. Animate Floating Particles & Binary Matrix Bits
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
 
@@ -362,20 +384,15 @@ class BackgroundFX {
 
             this.ctx.save();
             this.ctx.globalAlpha = Math.max(0, p.alpha);
-            if (isNES) {
-                // Crisp 8-bit twinkling multi-color retro starfield pixels
-                const nesColors = ['#f8e400', '#00e4e4', '#ffffff', '#f87800', '#00a800'];
-                const starColor = nesColors[Math.abs(Math.floor(p.x + p.y)) % nesColors.length];
-                this.ctx.fillStyle = starColor;
-                this.ctx.fillRect(p.x, p.y, Math.max(2, p.size * 1.4), Math.max(2, p.size * 1.4));
-            } else {
-                this.ctx.fillStyle = p.color;
-                this.ctx.beginPath();
-                this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                this.ctx.fill();
-            }
+            this.ctx.fillStyle = p.color;
+            this.ctx.shadowBlur = isCyberpunk ? 8 : 4;
+            this.ctx.shadowColor = p.color;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
             this.ctx.restore();
         }
+
         requestAnimationFrame(this._boundAnimate);
     }
 }

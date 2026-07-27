@@ -128,28 +128,14 @@ document.getElementById('btn-save-score').addEventListener('click', () => {
     document.getElementById('game-over-buttons').classList.remove('hidden');
 });
 
-const themeNames = {
-    modern: 'Modern',
-    cyberpunk: 'Cyberpunk',
-    nes: 'NES 8-Bit'
-};
-
-const nextThemeMap = {
-    modern: 'cyberpunk',
-    cyberpunk: 'nes',
-    nes: 'modern'
-};
-
 // Theme Button Logic
 document.getElementById('btn-toggle-theme').addEventListener('click', (e) => {
     const settings = Storage.getSettings();
-    settings.theme = nextThemeMap[settings.theme] || 'modern';
+    settings.theme = settings.theme === 'cyberpunk' ? 'modern' : 'cyberpunk';
     Storage.saveSettings(settings);
     applyTheme();
-    e.target.innerText = themeNames[settings.theme] || 'Modern';
+    e.target.innerText = settings.theme === 'cyberpunk' ? 'Cyberpunk' : 'Modern';
 });
-
-// SFX Volume Slider Logic
 
 
 
@@ -188,12 +174,16 @@ if (musicSlider && musicValSpan) {
 // Settings Logic
 let listeningForBind = null;
 
+// Keys that must never be assignable to a game/music action because they're used
+// elsewhere in the UI (Escape toggles pause).
+const RESERVED_KEYS = ['Escape'];
+
 function loadSettingsUI() {
     const settings = Storage.getSettings();
     
     // Set Theme button text
     const themeBtn = document.getElementById('btn-toggle-theme');
-    themeBtn.innerText = themeNames[settings.theme] || 'Modern';
+    themeBtn.innerText = settings.theme === 'cyberpunk' ? 'Cyberpunk' : 'Modern';
 
     // Set SFX Volume slider
     const sfxVol = settings.sfxVolume !== undefined ? settings.sfxVolume : 80;
@@ -235,7 +225,32 @@ window.addEventListener('keydown', (e) => {
     if (listeningForBind) {
         e.preventDefault();
         const { action, btn } = listeningForBind;
+
+        if (RESERVED_KEYS.includes(e.code)) {
+            // Reject reserved keys and briefly explain why instead of silently binding them.
+            btn.innerText = 'Reserved key!';
+            btn.classList.remove('listening');
+            listeningForBind = null;
+            setTimeout(() => {
+                const settings = Storage.getSettings();
+                btn.innerText = settings[action] || 'Unbound';
+            }, 900);
+            return;
+        }
+
         const settings = Storage.getSettings();
+
+        // If another action is already bound to this key, unbind it first so the two
+        // actions don't silently fight over the same key (only the first match in
+        // handleAction's iteration would ever fire).
+        document.querySelectorAll('.keybind-btn:not(#btn-toggle-theme)').forEach(otherBtn => {
+            const otherAction = otherBtn.dataset.action;
+            if (otherAction && otherAction !== action && settings[otherAction] === e.code) {
+                settings[otherAction] = null;
+                otherBtn.innerText = 'Unbound';
+            }
+        });
+
         settings[action] = e.code;
         Storage.saveSettings(settings);
         Input.updateSettings(settings);
@@ -296,6 +311,8 @@ document.getElementById('file-add-song').addEventListener('change', (e) => {
     if (e.target.files && e.target.files.length > 0) {
         audioPlayer.addFiles(e.target.files);
     }
+    // Reset the input value so selecting the same file(s) again still fires 'change'.
+    e.target.value = '';
 });
 
 document.querySelectorAll('.btn-player-playpause').forEach(btn => {
@@ -354,6 +371,5 @@ Input.onAction = (action, state) => {
 };
 
 // Initial UI & Audio Load on page startup
-applyTheme();
 loadSettingsUI();
 updateMainLeaderboard();
