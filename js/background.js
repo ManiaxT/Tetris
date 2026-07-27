@@ -286,6 +286,30 @@ class BackgroundFX {
                 this.ctx.fillRect(sunX - sunRadius, stripeY, sunRadius * 2, stripeHeight);
             }
             this.ctx.restore();
+        } else {
+            // Modern Theme: Aurora Glass Nebula Light Field
+            this.ctx.fillStyle = '#090b16';
+            this.ctx.fillRect(0, 0, w, h);
+
+            // Aurora Blob 1 (Top-Left Electric Indigo Mesh)
+            const auroraX1 = w * 0.3 + Math.sin(now * 0.35) * 80;
+            const auroraY1 = h * 0.3 + Math.cos(now * 0.25) * 60;
+            const grad1 = this.ctx.createRadialGradient(auroraX1, auroraY1, 40, auroraX1, auroraY1, Math.max(w, h) * 0.6);
+            grad1.addColorStop(0, 'rgba(99, 102, 241, 0.32)');
+            grad1.addColorStop(0.5, 'rgba(79, 70, 229, 0.14)');
+            grad1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            this.ctx.fillStyle = grad1;
+            this.ctx.fillRect(0, 0, w, h);
+
+            // Aurora Blob 2 (Bottom-Right Radiant Cyan Mesh)
+            const auroraX2 = w * 0.7 + Math.cos(now * 0.28) * 90;
+            const auroraY2 = h * 0.7 + Math.sin(now * 0.38) * 70;
+            const grad2 = this.ctx.createRadialGradient(auroraX2, auroraY2, 40, auroraX2, auroraY2, Math.max(w, h) * 0.6);
+            grad2.addColorStop(0, 'rgba(6, 182, 212, 0.25)');
+            grad2.addColorStop(0.5, 'rgba(56, 189, 248, 0.10)');
+            grad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            this.ctx.fillStyle = grad2;
+            this.ctx.fillRect(0, 0, w, h);
         }
 
         // 2. Animate 3D Floating Wireframe Tetrominos
@@ -302,7 +326,7 @@ class BackgroundFX {
             const origX = shape.x;
             const origY = shape.y;
 
-            let drawColor = isNES ? (shape.color || '#00f0f0') : (isCyberpunk ? shape.color : 'rgba(255, 255, 255, 0.4)');
+            let drawColor = isNES ? (shape.color || '#00f0f0') : (isCyberpunk ? shape.color : (shape.color || '#818cf8'));
             if (isGlitching) {
                 shape.x += (Math.random() - 0.5) * 45;
                 shape.y += (Math.random() - 0.5) * 45;
@@ -311,8 +335,8 @@ class BackgroundFX {
 
             this.ctx.save();
             this.ctx.strokeStyle = drawColor;
-            this.ctx.lineWidth = isGlitching ? 3.5 : (isNES ? 2.5 : (isCyberpunk ? 2.5 : 1.8));
-            this.ctx.globalAlpha = isGlitching ? 0.9 : (isNES ? 0.7 : (isCyberpunk ? 0.65 : 0.25));
+            this.ctx.lineWidth = isGlitching ? 3.5 : (isNES ? 2.5 : (isCyberpunk ? 2.5 : 2.2));
+            this.ctx.globalAlpha = isGlitching ? 0.9 : (isNES ? 0.7 : (isCyberpunk ? 0.65 : 0.55));
 
             shape.cubes.forEach(c => {
                 this.drawWireCube(c[0], c[1], c[2], shape);

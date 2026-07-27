@@ -204,22 +204,31 @@ class Game {
             ctx.fillRect(x + padding, y + padding, size - padding * 2, 2);
             ctx.fillRect(x + padding, y + padding, 2, size - padding * 2);
         } else {
-            // Modern High-Res HD 3D Block
-            ctx.fillStyle = finalColor;
-            ctx.fillRect(x, y, size, size);
+            // Ultra High-End Modern 3D Glass Gradient Block
+            const inset = 1;
+            const innerSize = size - inset * 2;
 
-            // Bevel highlights
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-            ctx.fillRect(x, y, size, 3);
-            ctx.fillRect(x, y, 3, size);
+            // Rich Linear Gradient fill from top-left to bottom-right
+            const grad = ctx.createLinearGradient(x, y, x + size, y + size);
+            grad.addColorStop(0, finalColor);
+            grad.addColorStop(1, 'rgba(15, 23, 42, 0.95)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(x + inset, y + inset, innerSize, innerSize);
 
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.fillRect(x, y + size - 3, size, 3);
-            ctx.fillRect(x + size - 3, y, 3, size);
-            
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x, y, size, size);
+            // Smooth inner top-left specular highlight glow
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+            ctx.fillRect(x + inset + 1, y + inset + 1, innerSize - 2, 2.5);
+            ctx.fillRect(x + inset + 1, y + inset + 1, 2.5, innerSize - 2);
+
+            // Soft bottom-right ambient shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.fillRect(x + inset + 1, y + size - inset - 3.5, innerSize - 2, 2.5);
+            ctx.fillRect(x + size - inset - 3.5, y + inset + 1, 2.5, innerSize - 2);
+
+            // Sharp rounded border accent
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(x + 0.75, y + 0.75, size - 1.5, size - 1.5);
         }
         ctx.restore();
     }
