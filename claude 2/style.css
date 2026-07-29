@@ -1,12 +1,12 @@
 :root {
-    /* Modern Theme (Default) */
+    /* Modern Theme (Default) - crisp, high-contrast dark UI */
     --bg-color: #0f0f13;
-    --text-color: #ededed;
-    --accent-color: #3b82f6;
-    --accent-hover: #2563eb;
-    --panel-bg: rgba(16, 16, 28, 0.92);
-    --panel-border: rgba(255, 255, 255, 0.15);
-    --grid-color: rgba(255, 255, 255, 0.05);
+    --text-color: #f5f5f7;
+    --accent-color: #4a90ff;
+    --accent-hover: #6ba5ff;
+    --panel-bg: rgba(255, 255, 255, 0.055);
+    --panel-border: rgba(255, 255, 255, 0.16);
+    --grid-color: rgba(255, 255, 255, 0.07);
     --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -15,31 +15,33 @@
     --text-color: #ff00ff;
     --accent-color: #ff007f;
     --accent-hover: #ff66b2;
-    --panel-bg: rgba(14, 3, 26, 0.95);
-    --panel-border: rgba(255, 0, 128, 0.6);
+    --panel-bg: rgba(30, 0, 40, 0.7);
+    --panel-border: rgba(255, 0, 128, 0.65);
     --grid-color: rgba(255, 0, 255, 0.15);
     --font-family: 'Courier New', Courier, monospace;
 }
 
 [data-theme="nes"] {
-    --bg-color: #050512;
-    --text-color: #ffffff;
+    /* Flat, high-contrast 8-bit retro palette. No gradients, no blur, hard edges only. */
+    --bg-color: #0c0c14;
+    --text-color: #fcfcfc;
     --accent-color: #f83800;
-    --accent-hover: #f8a400;
-    --panel-bg: #0b0b1e;
-    --panel-border: #ffffff;
-    --grid-color: rgba(255, 255, 255, 0.1);
+    --accent-hover: #ff6a3c;
+    --panel-bg: #14142a;
+    --panel-border: #fcfcfc;
+    --grid-color: rgba(252, 252, 252, 0.06);
     --font-family: 'Press Start 2P', 'Courier New', monospace;
 }
 
 [data-theme="nebula"] {
+    /* Translucent glassy cosmos: soft violet/blue nebula clouds behind frosted panels. */
     --bg-color: #0a0518;
     --text-color: #f1e9ff;
     --accent-color: #b46cff;
     --accent-hover: #d29bff;
-    --panel-bg: rgba(45, 20, 85, 0.45);
-    --panel-border: rgba(190, 140, 255, 0.45);
-    --grid-color: rgba(180, 130, 255, 0.08);
+    --panel-bg: rgba(60, 30, 110, 0.22);
+    --panel-border: rgba(190, 140, 255, 0.4);
+    --grid-color: rgba(180, 130, 255, 0.05);
     --font-family: 'Orbitron', 'Inter', -apple-system, sans-serif;
 }
 
@@ -68,8 +70,6 @@ body {
     height: 100vh;
     z-index: -5;
     pointer-events: none;
-    will-change: transform;
-    transform: translateZ(0);
 }
 
 #app {
@@ -100,20 +100,13 @@ body {
     pointer-events: auto;
 }
 
-/* --- Cyberpunk Tetris Title --- */
-.tetris-title {
-    font-size: 4.8rem;
-    font-weight: 900;
-    letter-spacing: 0.6rem;
-    margin-bottom: 2.5rem;
+/* Typography */
+h1 {
+    font-size: 4rem;
+    letter-spacing: 0.5rem;
+    margin-bottom: 3rem;
     text-transform: uppercase;
-    color: var(--text-color);
-    text-shadow: 0 0 20px var(--accent-color), 0 0 40px var(--accent-color);
-}
-
-body[data-theme="cyberpunk"] .tetris-title {
-    color: #00ffff;
-    text-shadow: 0 0 15px #00ffff, 0 0 35px #ff007f, -3px 3px 0px #ff007f;
+    text-shadow: 0 0 12px rgba(255,255,255,0.22), 0 2px 0 rgba(0,0,0,0.5);
 }
 
 h2 {
@@ -145,42 +138,27 @@ h2 {
 }
 
 .player-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
 }
 
 .player-controls button {
-    padding: 0.4rem 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 28px;
-    height: 30px;
+    padding: 0.4rem 0.2rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    width: auto;
+    flex: 1;
+}
+
+#main-music-player {
+    margin: 0;
     width: 100%;
-    border-radius: 4px;
 }
 
-body[data-theme="cyberpunk"] .player-controls button {
-    clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
-}
-
-body[data-theme="cyberpunk"] .player-controls button::before {
-    clip-path: polygon(
-        0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px,
-        1.5px 6px, 1.5px calc(100% - 1.5px), calc(100% - 6px) calc(100% - 1.5px), calc(100% - 1.5px) calc(100% - 6px), calc(100% - 1.5px) 1.5px, 6px 1.5px, 1.5px 6px
-    );
-}
-
-.player-controls button svg {
-    display: block;
-    fill: currentColor;
-    transition: transform 0.15s ease;
-}
-
-.player-controls button:hover svg {
-    transform: scale(1.18);
+#main-music-player .player-controls button {
+    font-size: 0.8rem;
+    font-weight: 700;
 }
 
 .playlist-list {
@@ -224,7 +202,7 @@ button {
     font-weight: 600;
     cursor: pointer;
     border-radius: 4px;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
     font-family: inherit;
     text-transform: uppercase;
     letter-spacing: 0.08rem;
@@ -234,7 +212,7 @@ button {
 button:hover {
     background: var(--accent-color);
     color: #000;
-    box-shadow: 0 0 20px var(--accent-color);
+    box-shadow: 0 0 16px var(--accent-color);
     transform: translateY(-2px);
 }
 
@@ -247,6 +225,28 @@ button:hover {
 
 .menu-buttons button {
     width: 100%;
+}
+
+/* Theme Selector */
+.theme-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: flex-end;
+    max-width: 220px;
+}
+
+.theme-btn {
+    flex: 1 1 45%;
+    padding: 0.45rem 0.4rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.03rem;
+}
+
+.theme-btn.active {
+    background: var(--accent-color);
+    color: #000;
+    box-shadow: 0 0 12px var(--accent-color);
 }
 
 /* Settings */
@@ -269,7 +269,7 @@ button:hover {
     box-sizing: border-box;
 }
 
-/* Custom scrollbar styling for cyberpunk & modern themes */
+/* Custom scrollbar styling */
 .settings-scroll::-webkit-scrollbar, .panel-scroll::-webkit-scrollbar {
     width: 6px;
 }
@@ -352,10 +352,10 @@ button:hover {
     border: 1px solid var(--panel-border);
     padding: 2rem;
     border-radius: 8px;
-    width: 680px;
+    width: 500px;
     margin-bottom: 2rem;
-    backdrop-filter: blur(16px);
-    max-height: 65vh;
+    backdrop-filter: blur(10px);
+    max-height: 60vh;
     overflow-y: auto;
 }
 
@@ -365,40 +365,17 @@ table {
 }
 
 th, td {
-    padding: 1.1rem 1.2rem;
+    padding: 1rem;
     text-align: left;
     border-bottom: 1px solid var(--panel-border);
 }
 
 th {
-    font-weight: 700;
-    color: var(--accent-color);
+    font-weight: 500;
+    color: #aaa;
     text-transform: uppercase;
-    font-size: 1.2rem;
-    letter-spacing: 0.08rem;
-}
-
-td {
-    font-size: 1.25rem;
-    font-weight: bold;
-}
-
-#scores-table tr:nth-child(1) td {
-    color: #ffd700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
-    font-size: 1.35rem;
-}
-
-#scores-table tr:nth-child(2) td {
-    color: #00ffff;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
-    font-size: 1.3rem;
-}
-
-#scores-table tr:nth-child(3) td {
-    color: #ff00ff;
-    text-shadow: 0 0 10px rgba(255, 0, 255, 0.6);
-    font-size: 1.28rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.05rem;
 }
 
 /* Game UI */
@@ -476,10 +453,9 @@ canvas#hold-canvas, canvas#next-canvas {
 }
 
 #main-leaderboard-list li {
-    padding: 0.65rem 0.8rem;
+    padding: 0.5rem;
     border-bottom: 1px solid var(--panel-border);
-    font-size: 1.1rem;
-    font-weight: bold;
+    font-size: 0.9rem;
     text-align: left;
 }
 
@@ -587,10 +563,9 @@ body[data-theme="cyberpunk"] .scoreboard-content {
     border: none;
     border-radius: 0;
     clip-path: polygon(0 15px, 15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
-    background: linear-gradient(135deg, rgba(35, 10, 50, 0.95) 0%, rgba(8, 2, 20, 0.97) 100%);
-    backdrop-filter: blur(8px);
-    will-change: transform;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, rgba(255, 0, 128, 0.06) 0%, rgba(10, 0, 26, 0.68) 100%);
+    backdrop-filter: blur(4px);
+    box-shadow: none;
     position: relative;
     overflow: hidden;
 }
@@ -724,6 +699,187 @@ body[data-theme="cyberpunk"] .glitch-text::after {
     100% { filter: hue-rotate(0deg) contrast(1); transform: translate(0); }
 }
 
+/* --- NES Theme Effects: flat, hard-edged, pixel-crisp --- */
+
+body[data-theme="nes"] {
+    background: var(--bg-color);
+    image-rendering: pixelated;
+}
+
+body[data-theme="nes"] canvas {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+body[data-theme="nes"] * {
+    text-shadow: none !important;
+}
+
+body[data-theme="nes"] h1,
+body[data-theme="nes"] h2,
+body[data-theme="nes"] h3 {
+    letter-spacing: 0.12rem;
+    text-shadow: 3px 3px 0 #000 !important;
+}
+
+body[data-theme="nes"] h1 {
+    font-size: 2.4rem;
+    letter-spacing: 0.35rem;
+}
+
+body[data-theme="nes"] h2 {
+    font-size: 1.6rem;
+    font-weight: normal;
+}
+
+/* Double-border NES UI box look: thick white outline offset from a black frame */
+body[data-theme="nes"] .panel-box,
+body[data-theme="nes"] .board-container,
+body[data-theme="nes"] .settings-content,
+body[data-theme="nes"] .scoreboard-content {
+    border-radius: 0;
+    border: 4px solid #000;
+    outline: 3px solid var(--panel-border);
+    outline-offset: -8px;
+    background: var(--panel-bg);
+    backdrop-filter: none;
+    box-shadow: 6px 6px 0 #000;
+}
+
+body[data-theme="nes"] button {
+    border-radius: 0;
+    border: 3px solid #000;
+    outline: 2px solid var(--panel-border);
+    outline-offset: -6px;
+    background: var(--accent-color);
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 1rem 1.2rem;
+    line-height: 1.6;
+    box-shadow: 4px 4px 0 #000;
+    transition: transform 0.05s steps(1), box-shadow 0.05s steps(1);
+}
+
+body[data-theme="nes"] button:hover {
+    background: var(--accent-hover);
+    color: #fff;
+    box-shadow: 4px 4px 0 #000;
+    transform: translateY(-2px);
+}
+
+body[data-theme="nes"] button:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 #000;
+}
+
+body[data-theme="nes"] .theme-btn.active {
+    background: #00b800;
+    box-shadow: 4px 4px 0 #000;
+}
+
+/* Compact NES buttons: keep dense controls readable and non-overflowing */
+body[data-theme="nes"] .player-controls button {
+    padding: 0.4rem 0.15rem;
+    font-size: 0.55rem;
+    box-shadow: 3px 3px 0 #000;
+    outline-offset: -5px;
+}
+
+body[data-theme="nes"] .keybind-btn,
+body[data-theme="nes"] .action-btn {
+    width: 120px;
+    padding: 0.6rem 0.3rem;
+    font-size: 0.55rem;
+    box-shadow: 3px 3px 0 #000;
+}
+
+body[data-theme="nes"] .theme-btn {
+    padding: 0.5rem 0.3rem;
+    font-size: 0.5rem;
+    box-shadow: 3px 3px 0 #000;
+}
+
+body[data-theme="nes"] button:active {
+    transform: translate(3px, 3px);
+}
+
+body[data-theme="nes"] .volume-slider {
+    border-radius: 0;
+    border: 2px solid #000;
+    height: 10px;
+}
+
+body[data-theme="nes"] .volume-slider::-webkit-slider-thumb {
+    border-radius: 0;
+    border: 2px solid #000;
+    box-shadow: none;
+    width: 14px;
+    height: 18px;
+}
+
+body[data-theme="nes"] .action-popup {
+    text-shadow: 3px 3px 0 #000, -1px -1px 0 #000 !important;
+}
+
+/* --- Nebula Theme Effects: frosted glass panels over drifting cosmic clouds --- */
+
+body[data-theme="nebula"] {
+    background:
+        radial-gradient(ellipse 60% 45% at 20% 20%, rgba(120, 70, 220, 0.35) 0%, rgba(0,0,0,0) 60%),
+        radial-gradient(ellipse 55% 45% at 85% 25%, rgba(255, 90, 190, 0.28) 0%, rgba(0,0,0,0) 60%),
+        radial-gradient(ellipse 65% 55% at 50% 85%, rgba(70, 110, 255, 0.30) 0%, rgba(0,0,0,0) 62%),
+        radial-gradient(ellipse 50% 40% at 75% 75%, rgba(180, 70, 255, 0.22) 0%, rgba(0,0,0,0) 60%),
+        var(--bg-color);
+    background-size: 200% 200%, 200% 200%, 200% 200%, 200% 200%, 100% 100%;
+    animation: nebulaDrift 40s ease-in-out infinite alternate;
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes nebulaDrift {
+    0%   { background-position: 0% 0%, 100% 0%, 50% 100%, 100% 100%, 0 0; }
+    50%  { background-position: 20% 30%, 80% 20%, 40% 80%, 70% 60%, 0 0; }
+    100% { background-position: 10% 10%, 90% 40%, 60% 90%, 90% 80%, 0 0; }
+}
+
+body[data-theme="nebula"] .panel-box,
+body[data-theme="nebula"] .board-container,
+body[data-theme="nebula"] .settings-content,
+body[data-theme="nebula"] .scoreboard-content {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: 0 8px 32px rgba(80, 30, 160, 0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+
+body[data-theme="nebula"] h1 {
+    text-shadow: 0 0 24px rgba(180, 108, 255, 0.7), 0 0 6px rgba(255,255,255,0.4);
+}
+
+body[data-theme="nebula"] button {
+    background: rgba(60, 30, 110, 0.35);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 18px rgba(80, 30, 160, 0.3);
+}
+
+body[data-theme="nebula"] button:hover {
+    background: var(--accent-color);
+    color: #150a2b;
+    box-shadow: 0 0 20px var(--accent-color);
+}
+
+body[data-theme="nebula"] .theme-btn.active {
+    background: var(--accent-color);
+    color: #150a2b;
+}
+
+body[data-theme="nebula"] ::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+}
+
 /* --- New UI Elements --- */
 #action-text-container {
     position: absolute;
@@ -815,308 +971,4 @@ body[data-theme="cyberpunk"] .glitch-text::after {
 }
 #game-over-buttons button {
     width: 100%;
-}
-
-/* --- NES 8-Bit Retro Theme Rules --- */
-body[data-theme="nes"] {
-    background-color: #050512;
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    letter-spacing: 0;
-}
-
-body[data-theme="nes"] .panel-box,
-body[data-theme="nes"] .board-container,
-body[data-theme="nes"] .settings-content,
-body[data-theme="nes"] .scoreboard-content {
-    border: 4px solid #ffffff;
-    border-radius: 0;
-    clip-path: none;
-    background: #090918;
-    box-shadow: 0 0 0 3px #000000, 0 8px 0 rgba(0, 0, 0, 0.8);
-    backdrop-filter: none;
-}
-
-body[data-theme="nes"] .panel-box::before,
-body[data-theme="nes"] .board-container::before,
-body[data-theme="nes"] .settings-content::before,
-body[data-theme="nes"] .scoreboard-content::before {
-    display: none;
-}
-
-body[data-theme="nes"] button {
-    border: 3px solid #ffffff;
-    border-radius: 0;
-    clip-path: none;
-    background: #12122b;
-    color: #ffffff;
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    font-size: 0.7rem;
-    padding: 0.65rem 0.9rem;
-    box-shadow: 3px 3px 0 #000000;
-    text-shadow: none;
-}
-
-body[data-theme="nes"] button:hover {
-    background: #ffffff;
-    color: #000000;
-    box-shadow: 1px 1px 0 #000000;
-    transform: translate(2px, 2px);
-}
-
-body[data-theme="nes"] .tetris-title {
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    color: #f83800;
-    font-size: 2.8rem;
-    letter-spacing: 0.15rem;
-    text-shadow: 4px 4px 0 #f8a400, 7px 7px 0 #000000;
-}
-
-body[data-theme="nes"] h2,
-body[data-theme="nes"] h3 {
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    font-size: 1.1rem;
-    text-shadow: 2px 2px 0 #000000;
-    color: #f8a400;
-}
-
-body[data-theme="nes"] th {
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    font-size: 0.75rem;
-    color: #f8a400;
-    padding: 0.8rem 0.6rem;
-}
-
-body[data-theme="nes"] td {
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    font-size: 0.7rem;
-    padding: 0.8rem 0.6rem;
-}
-
-body[data-theme="nes"] #scores-table tr:nth-child(1) td {
-    color: #f8e400;
-    text-shadow: 2px 2px 0 #000;
-    font-size: 0.78rem;
-}
-
-body[data-theme="nes"] #scores-table tr:nth-child(2) td {
-    color: #00e4e4;
-    text-shadow: 2px 2px 0 #000;
-    font-size: 0.75rem;
-}
-
-body[data-theme="nes"] #scores-table tr:nth-child(3) td {
-    color: #f87800;
-    text-shadow: 2px 2px 0 #000;
-    font-size: 0.72rem;
-}
-
-body[data-theme="nes"] #main-leaderboard-list li {
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    font-size: 0.62rem;
-    padding: 0.6rem 0.4rem;
-}
-
-body[data-theme="nes"] .stat label {
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    font-size: 0.55rem;
-    color: #f8a400;
-}
-
-body[data-theme="nes"] .stat p {
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    font-size: 0.85rem;
-    margin-top: 4px;
-}
-
-body[data-theme="nes"] .action-popup {
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    font-size: 1.1rem;
-    color: #f8e400;
-    text-shadow: 3px 3px 0 #000000;
-    animation: actionFade 0.7s ease-out forwards;
-}
-
-body[data-theme="nes"] #player-name {
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    font-size: 0.75rem;
-    border: 3px solid #ffffff;
-    background: #000000;
-    border-radius: 0;
-}
-
-body[data-theme="nes"] .now-playing-title {
-    font-family: 'Press Start 2P', 'Courier New', monospace;
-    font-size: 0.6rem;
-    color: #00e4e4;
-}
-
-body[data-theme="nes"] .glitch-text::before,
-body[data-theme="nes"] .glitch-text::after {
-    display: none;
-}
-
-/* --- Ultra High-End Modern Glassmorphic Theme Rules --- */
-body[data-theme="modern"],
-body:not([data-theme]) {
-    background-color: #080914;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-body[data-theme="modern"] .tetris-title,
-body:not([data-theme]) .tetris-title {
-    font-size: 5.2rem;
-    font-weight: 900;
-    letter-spacing: 0.5rem;
-    background: linear-gradient(135deg, #ffffff 10%, #a5b4fc 45%, #38bdf8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 12px 35px rgba(99, 102, 241, 0.55));
-}
-
-body[data-theme="modern"] .panel-box,
-body[data-theme="modern"] .board-container,
-body[data-theme="modern"] .settings-content,
-body[data-theme="modern"] .scoreboard-content,
-body:not([data-theme]) .panel-box,
-body:not([data-theme]) .board-container,
-body:not([data-theme]) .settings-content,
-body:not([data-theme]) .scoreboard-content {
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.78), rgba(15, 23, 42, 0.90));
-    border: 1px solid rgba(99, 102, 241, 0.28);
-    border-radius: 16px;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 25px rgba(99, 102, 241, 0.15);
-}
-
-body[data-theme="modern"] button,
-body[data-theme="modern"] .menu-buttons button,
-body:not([data-theme]) button,
-body:not([data-theme]) .menu-buttons button {
-    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 12px;
-    color: #ffffff;
-    font-weight: 700;
-    letter-spacing: 0.06rem;
-    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-body[data-theme="modern"] button:hover,
-body[data-theme="modern"] .menu-buttons button:hover,
-body:not([data-theme]) button:hover,
-body:not([data-theme]) .menu-buttons button:hover {
-    background: linear-gradient(135deg, #6366f1 0%, #60a5fa 100%);
-    color: #ffffff;
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 14px 35px rgba(99, 102, 241, 0.6);
-}
-
-body[data-theme="modern"] h2,
-body[data-theme="modern"] h3,
-body:not([data-theme]) h2,
-body:not([data-theme]) h3 {
-    color: #38bdf8;
-    text-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
-}
-
-body[data-theme="modern"] .stat label,
-body:not([data-theme]) .stat label {
-    color: #818cf8;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05rem;
-}
-
-body[data-theme="modern"] .stat p,
-body:not([data-theme]) .stat p {
-    color: #f8fafc;
-    font-weight: 800;
-    font-size: 1.4rem;
-}
-
-/* --- Theme Selector Buttons --- */
-.theme-selector {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.theme-btn {
-    padding: 0.45rem 0.7rem !important;
-    font-size: 0.72rem !important;
-    border-radius: 8px !important;
-    opacity: 0.55;
-    transition: all 0.2s ease;
-    border: 1px solid var(--panel-border) !important;
-    box-shadow: none !important;
-}
-
-.theme-btn.active, .theme-btn:hover {
-    opacity: 1;
-    transform: translateY(-1px);
-    box-shadow: 0 0 12px var(--accent-color) !important;
-    border-color: var(--accent-color) !important;
-}
-
-/* --- Cosmic Nebula Theme Rules --- */
-body[data-theme="nebula"] {
-    background-color: #0a0518;
-    font-family: 'Orbitron', 'Inter', sans-serif;
-}
-
-body[data-theme="nebula"] .tetris-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 4.8rem;
-    font-weight: 800;
-    letter-spacing: 0.5rem;
-    background: linear-gradient(135deg, #ffffff 10%, #d29bff 50%, #8b5cf6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 10px 30px rgba(180, 108, 255, 0.6));
-}
-
-body[data-theme="nebula"] .panel-box,
-body[data-theme="nebula"] .board-container,
-body[data-theme="nebula"] .settings-content,
-body[data-theme="nebula"] .scoreboard-content {
-    background: linear-gradient(145deg, rgba(50, 22, 95, 0.45), rgba(20, 10, 45, 0.65));
-    border: 1px solid rgba(190, 140, 255, 0.4);
-    border-radius: 16px;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 30px rgba(180, 108, 255, 0.2);
-}
-
-body[data-theme="nebula"] button {
-    background: linear-gradient(135deg, #8b5cf6 0%, #b46cff 100%);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 12px;
-    color: #ffffff;
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 600;
-    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-body[data-theme="nebula"] button:hover {
-    background: linear-gradient(135deg, #a78bfa 0%, #d29bff 100%);
-    color: #ffffff;
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 14px 35px rgba(180, 108, 255, 0.65);
-}
-
-body[data-theme="nebula"] h2,
-body[data-theme="nebula"] h3 {
-    color: #d29bff;
-    text-shadow: 0 0 15px rgba(210, 155, 255, 0.5);
-}
-
-body[data-theme="nebula"] .stat label {
-    color: #b46cff;
-    font-weight: 600;
-}
-
-body[data-theme="nebula"] .stat p {
-    color: #f1e9ff;
-    font-weight: 800;
 }

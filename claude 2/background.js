@@ -13,14 +13,6 @@ class BackgroundFX {
         this.hueShift = 0;
         this.glitchTimer = 0;
 
-        // Cached sun gradients for performance optimization
-        this._sunGradCacheKey = null;
-        this._sunGradCache = null;
-        this._sunGlowCache = null;
-
-        // Bind once so the RAF loop doesn't allocate a new arrow function every frame.
-        this._boundAnimate = this.animate.bind(this);
-        
         // Slow-drifting nebula cloud blobs for the Nebula theme
         this.nebulaBlobs = [];
 
@@ -42,7 +34,6 @@ class BackgroundFX {
         this.canvas.style.width = w + 'px';
         this.canvas.style.height = h + 'px';
         this.ctx.scale(dpr, dpr);
-        this._sunGradCacheKey = null;
     }
 
     initParticles() {
@@ -107,12 +98,10 @@ class BackgroundFX {
             'rgba(120, 60, 220, 0.28)',
             'rgba(255, 140, 220, 0.22)'
         ];
-        const w = window.innerWidth;
-        const h = window.innerHeight;
         for (let i = 0; i < 6; i++) {
             this.nebulaBlobs.push({
-                x: Math.random() * w,
-                y: Math.random() * h,
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
                 r: Math.random() * 260 + 220,
                 color: palette[i % palette.length],
                 speedX: (Math.random() - 0.5) * 0.12,
@@ -137,6 +126,7 @@ class BackgroundFX {
         }
 
         // Add exploding particles
+        const theme = document.body.getAttribute('data-theme');
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
             const pSpeed = (Math.random() * 0.85 + 0.15) * speed;
@@ -149,14 +139,15 @@ class BackgroundFX {
                 alpha: 1,
                 decay: Math.random() * 0.02 + 0.01,
                 isBurst: true,
-                color: Math.random() > 0.5 ? '#ff007f' : '#00ffff'
+                color: theme === 'nebula'
+                    ? (Math.random() > 0.5 ? '#c07bff' : '#7bc8ff')
+                    : (Math.random() > 0.5 ? '#ff007f' : '#00ffff')
             });
         }
     }
 
     setHueShift(degrees) {
         this.hueShift = degrees;
-        this._sunGradCacheKey = null;
     }
 
     // Helper to rotate and project a 3D vertex to 2D
@@ -229,54 +220,73 @@ class BackgroundFX {
         this.ctx.stroke();
     }
 
-    animate() {
-        const currentTheme = document.body.getAttribute('data-theme') || 'modern';
-        const isCyberpunk = currentTheme === 'cyberpunk';
-        const isNES = currentTheme === 'nes';
-        const isNebula = currentTheme === 'nebula';
+    drawNebulaClouds(w, h) {
+        const now = Date.now() * 0.001;
+        this.ctx.save();
+        this.ctx.globalCompositeOperation = 'lighter';
+        for (let b of this.nebulaBlobs) {
+            b.x += b.speedX;
+            b.y += b.speedY;
+            b.pulseAngle += b.pulseSpeed;
 
+            if (b.x < -b.r) b.x = w + b.r;
+            if (b.x > w + b.r) b.x = -b.r;
+            if (b.y < -b.r) b.y = h + b.r;
+            if (b.y > h + b.r) b.y = -b.r;
+
+            const pulse = 1 + Math.sin(b.pulseAngle) * 0.12;
+            const grad = this.ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r * pulse);
+            grad.addColorStop(0, b.color);
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            this.ctx.fillStyle = grad;
+            this.ctx.beginPath();
+            this.ctx.arc(b.x, b.y, b.r * pulse, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        this.ctx.restore();
+    }
+
+    animate() {
+        const theme = document.body.getAttribute('data-theme');
+        const isCyberpunk = theme === 'cyberpunk';
+        const isNebula = theme === 'nebula';
+        const isNes = theme === 'nes';
         const w = window.innerWidth;
         const h = window.innerHeight;
         this.ctx.clearRect(0, 0, w, h);
         const now = Date.now() * 0.001;
+
+        // The NES theme stays flat & crisp on purpose - no soft glowing background FX.
+        if (isNes) {
+            requestAnimationFrame(() => this.animate());
+            return;
+        }
 
         let isGlitching = this.glitchTimer > 0;
         if (isGlitching) {
             this.glitchTimer--;
         }
 
-        if (isNES) {
-            // NES 8-Bit Dark Retro Background (Deep Space with Vintage CRT Center Glow)
-            this.ctx.fillStyle = '#050512';
-            this.ctx.fillRect(0, 0, w, h);
-
-            // Vintage NES Center CRT Arcade Backlight
-            const nesGlow = this.ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.1, w / 2, h / 2, Math.min(w, h) * 0.7);
-            nesGlow.addColorStop(0, 'rgba(28, 28, 64, 0.45)');
-            nesGlow.addColorStop(0.6, 'rgba(12, 12, 32, 0.25)');
-            nesGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            this.ctx.fillStyle = nesGlow;
-            this.ctx.fillRect(0, 0, w, h);
-        } else if (isCyberpunk) {
+        if (isCyberpunk) {
             // 1. Sun & Laser Beams
             const sunX = w / 2;
             const sunY = h * 0.45;
             const sunRadius = Math.min(w, h) * 0.25;
 
-            // Volumetric Sun Laser Rays (Optimized 6 rays)
+            // Volumetric Sun Laser Rays (Fanning outwards)
             this.ctx.save();
-            const rayCount = 6;
+            const rayCount = 12;
             for (let i = 0; i < rayCount; i++) {
-                const angle = (i / rayCount) * Math.PI * 2 + (now * 0.04);
+                const angle = (i / rayCount) * Math.PI * 2 + (now * 0.05);
                 const rx = sunX + Math.cos(angle) * w;
                 const ry = sunY + Math.sin(angle) * h;
                 const rayGrad = this.ctx.createLinearGradient(sunX, sunY, rx, ry);
-                rayGrad.addColorStop(0, `hsla(${(300 + this.hueShift) % 360}, 100%, 65%, 0.06)`);
+                rayGrad.addColorStop(0, `hsla(${(300 + this.hueShift) % 360}, 100%, 65%, 0.08)`);
                 rayGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                 this.ctx.fillStyle = rayGrad;
                 this.ctx.beginPath();
                 this.ctx.moveTo(sunX, sunY);
-                this.ctx.arc(sunX, sunY, Math.max(w, h), angle - 0.09, angle + 0.09);
+                this.ctx.arc(sunX, sunY, Math.max(w, h), angle - 0.08, angle + 0.08);
                 this.ctx.closePath();
                 this.ctx.fill();
             }
@@ -316,61 +326,15 @@ class BackgroundFX {
                 this.ctx.fillRect(sunX - sunRadius, stripeY, sunRadius * 2, stripeHeight);
             }
             this.ctx.restore();
-        } else if (isNebula) {
-            // Cosmic Nebula Theme: Deep Violet Space with Pulsing Cloud Blobs
-            this.ctx.fillStyle = '#0a0518';
-            this.ctx.fillRect(0, 0, w, h);
+        }
 
-            for (let b of this.nebulaBlobs) {
-                b.x += b.speedX;
-                b.y += b.speedY;
-
-                if (b.x < -b.r) b.x = w + b.r;
-                if (b.x > w + b.r) b.x = -b.r;
-                if (b.y < -b.r) b.y = h + b.r;
-                if (b.y > h + b.r) b.y = -b.r;
-
-                b.pulseAngle += b.pulseSpeed;
-                const currentR = b.r + Math.sin(b.pulseAngle) * 35;
-
-                const blobGrad = this.ctx.createRadialGradient(b.x, b.y, 10, b.x, b.y, Math.max(20, currentR));
-                blobGrad.addColorStop(0, b.color);
-                blobGrad.addColorStop(0.65, b.color.replace(/[\d\.]+\)$/, '0.12)'));
-                blobGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-                this.ctx.fillStyle = blobGrad;
-                this.ctx.beginPath();
-                this.ctx.arc(b.x, b.y, Math.max(20, currentR), 0, Math.PI * 2);
-                this.ctx.fill();
-            }
-        } else {
-            // Modern Theme: Aurora Glass Nebula Light Field
-            this.ctx.fillStyle = '#090b16';
-            this.ctx.fillRect(0, 0, w, h);
-
-            // Aurora Blob 1 (Top-Left Electric Indigo Mesh)
-            const auroraX1 = w * 0.3 + Math.sin(now * 0.35) * 80;
-            const auroraY1 = h * 0.3 + Math.cos(now * 0.25) * 60;
-            const grad1 = this.ctx.createRadialGradient(auroraX1, auroraY1, 40, auroraX1, auroraY1, Math.max(w, h) * 0.6);
-            grad1.addColorStop(0, 'rgba(99, 102, 241, 0.32)');
-            grad1.addColorStop(0.5, 'rgba(79, 70, 229, 0.14)');
-            grad1.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            this.ctx.fillStyle = grad1;
-            this.ctx.fillRect(0, 0, w, h);
-
-            // Aurora Blob 2 (Bottom-Right Radiant Cyan Mesh)
-            const auroraX2 = w * 0.7 + Math.cos(now * 0.28) * 90;
-            const auroraY2 = h * 0.7 + Math.sin(now * 0.38) * 70;
-            const grad2 = this.ctx.createRadialGradient(auroraX2, auroraY2, 40, auroraX2, auroraY2, Math.max(w, h) * 0.6);
-            grad2.addColorStop(0, 'rgba(6, 182, 212, 0.25)');
-            grad2.addColorStop(0.5, 'rgba(56, 189, 248, 0.10)');
-            grad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            this.ctx.fillStyle = grad2;
-            this.ctx.fillRect(0, 0, w, h);
+        if (isNebula) {
+            this.drawNebulaClouds(w, h);
         }
 
         // 2. Animate 3D Floating Wireframe Tetrominos
         const glitchColors = ['#ff00ff', '#00ffff', '#ffff00', '#ffffff', '#00ff66'];
+        const nebulaPalette = ['#c07bff', '#7bc8ff', '#ff8ce0', '#a06bff', '#8ce0ff'];
         for (let shape of this.tetrominos3D) {
             shape.rotX += shape.speedRotX * (isGlitching ? 7 : 1);
             shape.rotY += shape.speedRotY * (isGlitching ? 7 : 1);
@@ -383,7 +347,10 @@ class BackgroundFX {
             const origX = shape.x;
             const origY = shape.y;
 
-            let drawColor = isNES ? (shape.color || '#00f0f0') : (isCyberpunk ? shape.color : (shape.color || '#818cf8'));
+            let drawColor = 'rgba(255, 255, 255, 0.4)';
+            if (isCyberpunk) drawColor = shape.color;
+            if (isNebula) drawColor = nebulaPalette[shape.type.charCodeAt(0) % nebulaPalette.length];
+
             if (isGlitching) {
                 shape.x += (Math.random() - 0.5) * 45;
                 shape.y += (Math.random() - 0.5) * 45;
@@ -392,8 +359,10 @@ class BackgroundFX {
 
             this.ctx.save();
             this.ctx.strokeStyle = drawColor;
-            this.ctx.lineWidth = isGlitching ? 3.5 : (isNES ? 2.5 : (isCyberpunk ? 2.5 : 2.2));
-            this.ctx.globalAlpha = isGlitching ? 0.9 : (isNES ? 0.7 : (isCyberpunk ? 0.65 : 0.55));
+            this.ctx.lineWidth = isGlitching ? 3.5 : (isCyberpunk ? 2.5 : (isNebula ? 2.2 : 1.8));
+            this.ctx.globalAlpha = isGlitching ? 0.9 : (isCyberpunk ? 0.6 : (isNebula ? 0.45 : 0.25));
+            this.ctx.shadowBlur = isGlitching ? 25 : (isCyberpunk ? 16 : (isNebula ? 14 : 4));
+            this.ctx.shadowColor = drawColor;
 
             shape.cubes.forEach(c => {
                 this.drawWireCube(c[0], c[1], c[2], shape);
@@ -414,7 +383,28 @@ class BackgroundFX {
             shape.y = origY;
         }
 
-        // 3. Animate Floating Dust / Stars Particles
+        // 3. Animate Bursts (Shockwaves)
+        for (let i = this.bursts.length - 1; i >= 0; i--) {
+            const b = this.bursts[i];
+            b.radius += (b.maxRadius - b.radius) * 0.08;
+            b.alpha -= 0.02;
+
+            if (b.alpha <= 0) {
+                this.bursts.splice(i, 1);
+                continue;
+            }
+
+            this.ctx.save();
+            this.ctx.strokeStyle = b.color;
+            this.ctx.globalAlpha = b.alpha * 0.6;
+            this.ctx.lineWidth = 3;
+            this.ctx.beginPath();
+            this.ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+            this.ctx.stroke();
+            this.ctx.restore();
+        }
+
+        // 4. Animate Floating Particles & Binary Matrix Bits
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
 
@@ -441,23 +431,23 @@ class BackgroundFX {
                 p.alpha = p.baseAlpha + Math.sin(p.pulseAngle) * 0.2;
             }
 
+            let drawColor = p.color;
+            if (isNebula && !p.isBurst) {
+                drawColor = '#e0d4ff';
+            }
+
             this.ctx.save();
             this.ctx.globalAlpha = Math.max(0, p.alpha);
-            if (isNES) {
-                // Crisp 8-bit twinkling multi-color retro starfield pixels
-                const nesColors = ['#f8e400', '#00e4e4', '#ffffff', '#f87800', '#00a800'];
-                const starColor = nesColors[Math.abs(Math.floor(p.x + p.y)) % nesColors.length];
-                this.ctx.fillStyle = starColor;
-                this.ctx.fillRect(p.x, p.y, Math.max(2, p.size * 1.4), Math.max(2, p.size * 1.4));
-            } else {
-                this.ctx.fillStyle = p.color;
-                this.ctx.beginPath();
-                this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                this.ctx.fill();
-            }
+            this.ctx.fillStyle = drawColor;
+            this.ctx.shadowBlur = isCyberpunk ? 8 : (isNebula ? 7 : 4);
+            this.ctx.shadowColor = drawColor;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
             this.ctx.restore();
         }
-        requestAnimationFrame(this._boundAnimate);
+
+        requestAnimationFrame(() => this.animate());
     }
 }
 

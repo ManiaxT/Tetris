@@ -15,9 +15,6 @@ class Game {
         this.levelDisplay = document.getElementById('level-display');
         this.linesDisplay = document.getElementById('lines-display');
 
-        // Cache for level-shifted block colors (color+level -> hsl string)
-        this.levelColorCache = new Map();
-
         // High-DPI HD Sharpness Canvas Scaling
         this.setupHDCanvas(this.canvas, this.ctx, COLS * BLOCK_SIZE, ROWS * BLOCK_SIZE);
         this.setupHDCanvas(this.holdCanvas, this.holdCtx, 100, 100);
@@ -113,11 +110,6 @@ class Game {
     getLevelColor(baseColor, level) {
         if (!baseColor || level <= 1) return baseColor;
         
-        const cacheKey = `${baseColor}_${level}`;
-        if (this.levelColorCache.has(cacheKey)) {
-            return this.levelColorCache.get(cacheKey);
-        }
-
         // Convert hex or color to HSL and shift hue by +35deg per level
         let hex = baseColor.replace('#', '');
         if (hex.length === 3) {
@@ -146,115 +138,107 @@ class Game {
         // Shift hue based on current level (+35 degrees per level)
         let shiftDegrees = ((level - 1) * 35) % 360;
         let newHue = (h * 360 + shiftDegrees) % 360;
-        const result = `hsl(${Math.round(newHue)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
-        this.levelColorCache.set(cacheKey, result);
-        return result;
+
+        return `hsl(${Math.round(newHue)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
     }
 
     renderBlock(ctx, x, y, size, color) {
-        const theme = document.body.getAttribute('data-theme') || 'modern';
+        const theme = document.body.getAttribute('data-theme');
         const finalColor = this.getLevelColor(color, this.level || 1);
         
         ctx.save();
-        if (theme === 'nes') {
-            // Authentic 8-Bit NES Tetris Block Rendering
-            const border = Math.max(1, Math.floor(size / 14));
-            const inset = Math.max(2, Math.floor(size / 9));
-            const dotSize = Math.max(3, Math.floor(size / 5.5));
-            const dotPos = Math.max(4, Math.floor(size / 5));
-
-            // Outer black border
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(x, y, size, size);
-
-            // Base NES color fill
-            ctx.fillStyle = finalColor;
-            ctx.fillRect(x + border, y + border, size - border * 2, size - border * 2);
-
-            // Top & Left 8-bit bevel highlight
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-            ctx.fillRect(x + border, y + border, size - border * 2, inset);
-            ctx.fillRect(x + border, y + border, inset, size - border * 2);
-
-            // Bottom & Right 8-bit shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(x + border, y + size - border - inset, size - border * 2, inset);
-            ctx.fillRect(x + size - border - inset, y + border, inset, size - border * 2);
-
-            // Top-left 8-bit pixel highlight square
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(x + dotPos, y + dotPos, dotSize, dotSize);
-        } else if (theme === 'cyberpunk') {
+        if (theme === 'cyberpunk') {
             // Dark base fill
-            ctx.fillStyle = 'rgba(6, 2, 18, 0.92)';
+            ctx.fillStyle = 'rgba(6, 2, 18, 0.9)';
             ctx.fillRect(x, y, size, size);
 
-            // Vibrant neon stroke
+            // Glowing neon stroke
+            ctx.shadowBlur = Math.max(6, size / 2.5);
+            ctx.shadowColor = finalColor;
             ctx.strokeStyle = finalColor;
             ctx.lineWidth = 2.5;
             ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
             
             // Inner vibrant core
             const padding = Math.max(2, Math.floor(size / 3.5));
+            ctx.shadowBlur = padding;
             ctx.fillStyle = finalColor;
             ctx.fillRect(x + padding, y + padding, size - padding * 2, size - padding * 2);
 
             // Inner top-left highlight accent
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
             ctx.fillRect(x + padding, y + padding, size - padding * 2, 2);
             ctx.fillRect(x + padding, y + padding, 2, size - padding * 2);
+        } else if (theme === 'nes') {
+            // Crisp flat 8-bit sprite block: no gradients, no blur, hard pixel edges
+            ctx.imageSmoothingEnabled = false;
+            const px = Math.max(2, Math.round(size / 8)); // pixel unit
+
+            // Solid base fill (flat color, no antialiasing feel)
+            ctx.fillStyle = finalColor;
+            ctx.fillRect(x, y, size, size);
+
+            // Thick black pixel outline (classic sprite border)
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x, y, size, px);                     // top
+            ctx.fillRect(x, y + size - px, size, px);          // bottom
+            ctx.fillRect(x, y, px, size);                       // left
+            ctx.fillRect(x + size - px, y, px, size);           // right
+
+            // Hard 1-pixel highlight (top-left) and shadow (bottom-right) - NES sprite shading
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.fillRect(x + px, y + px, size - px * 2, px);
+            ctx.fillRect(x + px, y + px, px, size - px * 2);
+
+            ctx.fillStyle = 'rgba(0,0,0,0.55)';
+            ctx.fillRect(x + px, y + size - px * 2, size - px * 2, px);
+            ctx.fillRect(x + size - px * 2, y + px, px, size - px * 2);
+
+            // Single bright corner pixel accent
+            ctx.fillStyle = 'rgba(255,255,255,0.95)';
+            ctx.fillRect(x + px, y + px, px, px);
         } else if (theme === 'nebula') {
-            // Performance-Optimized 3D Cosmic Glass Block (60 FPS)
-            const inset = 1;
-            const innerSize = size - inset * 2;
+            // Glassy, glowing cosmic block
+            ctx.fillStyle = 'rgba(10, 8, 30, 0.55)';
+            ctx.fillRect(x, y, size, size);
 
-            // Deep cosmic glass gradient fill
-            const grad = ctx.createLinearGradient(x, y, x + size, y + size);
-            grad.addColorStop(0, finalColor);
-            grad.addColorStop(1, 'rgba(15, 5, 30, 0.95)');
-            ctx.fillStyle = grad;
-            ctx.fillRect(x + inset, y + inset, innerSize, innerSize);
+            ctx.shadowBlur = size / 2;
+            ctx.shadowColor = finalColor;
+            ctx.fillStyle = finalColor;
+            ctx.globalAlpha = 0.85;
+            const padding = Math.max(2, Math.floor(size / 6));
+            ctx.fillRect(x + padding, y + padding, size - padding * 2, size - padding * 2);
+            ctx.globalAlpha = 1.0;
 
-            // Violet/White Top-Left Specular Gloss Accent
-            ctx.fillStyle = 'rgba(255, 235, 255, 0.65)';
-            ctx.fillRect(x + inset + 1, y + inset + 1, innerSize - 2, 2.5);
-            ctx.fillRect(x + inset + 1, y + inset + 1, 2.5, innerSize - 2);
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
 
-            // Soft bottom-right ambient shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-            ctx.fillRect(x + inset + 1, y + size - inset - 3.5, innerSize - 2, 2.5);
-            ctx.fillRect(x + size - inset - 3.5, y + inset + 1, 2.5, innerSize - 2);
-
-            // Sharp cosmic border stroke accent
-            ctx.strokeStyle = 'rgba(210, 155, 255, 0.45)';
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(x + 0.75, y + 0.75, size - 1.5, size - 1.5);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.fillRect(x + padding, y + padding, size - padding * 2, 2);
         } else {
-            // Ultra High-End Modern 3D Glass Gradient Block
-            const inset = 1;
-            const innerSize = size - inset * 2;
+            // Modern High-Res HD 3D Block - crisper bevels & sharper edges
+            ctx.fillStyle = finalColor;
+            ctx.fillRect(x, y, size, size);
 
-            // Rich Linear Gradient fill from top-left to bottom-right
-            const grad = ctx.createLinearGradient(x, y, x + size, y + size);
-            grad.addColorStop(0, finalColor);
-            grad.addColorStop(1, 'rgba(15, 23, 42, 0.95)');
-            ctx.fillStyle = grad;
-            ctx.fillRect(x + inset, y + inset, innerSize, innerSize);
+            // Crisp bevel highlights (tighter, higher-contrast)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.fillRect(x, y, size, 2);
+            ctx.fillRect(x, y, 2, size);
 
-            // Smooth inner top-left specular highlight glow
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-            ctx.fillRect(x + inset + 1, y + inset + 1, innerSize - 2, 2.5);
-            ctx.fillRect(x + inset + 1, y + inset + 1, 2.5, innerSize - 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+            ctx.fillRect(x, y + size - 2, size, 2);
+            ctx.fillRect(x + size - 2, y, 2, size);
 
-            // Soft bottom-right ambient shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-            ctx.fillRect(x + inset + 1, y + size - inset - 3.5, innerSize - 2, 2.5);
-            ctx.fillRect(x + size - inset - 3.5, y + inset + 1, 2.5, innerSize - 2);
+            // Sharp 1px outer outline for definition at any zoom level
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
 
-            // Sharp rounded border accent
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(x + 0.75, y + 0.75, size - 1.5, size - 1.5);
+            // Subtle inner highlight dot for crisp glassy pop
+            ctx.fillStyle = 'rgba(255,255,255,0.25)';
+            ctx.fillRect(x + 3, y + 3, Math.max(2, size / 5), 2);
         }
         ctx.restore();
     }
@@ -290,6 +274,7 @@ class Game {
         this.canHold = false;
         this.drawHold();
         this.resetLockDelay();
+        if (typeof cyberSFX !== 'undefined') cyberSFX.playHoldSound();
     }
 
     move(dx, dy) {
@@ -300,9 +285,7 @@ class Game {
             this.currentPiece.y -= dy;
             return false;
         }
-        if (dx !== 0 && typeof cyberSFX !== 'undefined') {
-            cyberSFX.playMoveSound();
-        }
+        if (dx !== 0 && typeof cyberSFX !== 'undefined') cyberSFX.playMoveSound(false);
         return true;
     }
 
@@ -360,10 +343,8 @@ class Game {
             this.currentPiece.x = oldX;
             this.currentPiece.y = oldY;
         } else {
-            if (typeof cyberSFX !== 'undefined') {
-                cyberSFX.playRotateSound();
-            }
             this.resetLockDelayIfTouching();
+            if (typeof cyberSFX !== 'undefined') cyberSFX.playMoveSound(true);
         }
     }
 
@@ -396,15 +377,11 @@ class Game {
     }
 
     hardDrop() {
-        this.wasHardDrop = true;
         while(this.move(0, 1)) {
             this.score += 2; 
         }
-        if (typeof cyberSFX !== 'undefined') {
-            cyberSFX.playHardDropSound();
-        }
+        if (typeof cyberSFX !== 'undefined') cyberSFX.playHardDropSound();
         this.lock();
-        this.wasHardDrop = false;
     }
 
     resetLockDelay() {
@@ -428,9 +405,6 @@ class Game {
     }
 
     lock() {
-        if (!this.wasHardDrop && typeof cyberSFX !== 'undefined') {
-            cyberSFX.playDropSound();
-        }
         for (let r = 0; r < this.currentPiece.shape.length; r++) {
             for (let c = 0; c < this.currentPiece.shape[r].length; c++) {
                 if (this.currentPiece.shape[r][c]) {
@@ -557,14 +531,12 @@ class Game {
 
     gameOver() {
         this.isGameOver = true;
-        if (typeof cyberSFX !== 'undefined') {
-            cyberSFX.playGameOverSound();
-        }
         document.getElementById('final-score-val').innerText = this.score;
         document.getElementById('name-input-container').classList.remove('hidden');
         document.getElementById('game-over-buttons').classList.add('hidden');
         document.getElementById('game-over-overlay').classList.remove('hidden');
         document.getElementById('player-name').focus();
+        if (typeof cyberSFX !== 'undefined') cyberSFX.playGameOverSound();
     }
 
     getGhostY() {

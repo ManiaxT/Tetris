@@ -8,16 +8,22 @@ const screens = {
 let game = null;
 let animFrame = null;
 
+const VALID_THEMES = ['modern', 'cyberpunk', 'nes', 'nebula'];
+
 // Apply Theme on Load
 function applyTheme() {
     const settings = Storage.getSettings();
-    const theme = settings.theme || 'modern';
+    const theme = VALID_THEMES.includes(settings.theme) ? settings.theme : 'modern';
     document.body.setAttribute('data-theme', theme);
-    if (typeof updateThemeSelectorUI === 'function') {
-        updateThemeSelectorUI(theme);
-    }
+    updateThemeSelectorUI(theme);
 }
 applyTheme();
+
+function updateThemeSelectorUI(theme) {
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.themeValue === theme);
+    });
+}
 
 function showScreen(screenId) {
     Object.values(screens).forEach(s => s.classList.remove('active'));
@@ -132,44 +138,16 @@ document.getElementById('btn-save-score').addEventListener('click', () => {
     document.getElementById('game-over-buttons').classList.remove('hidden');
 });
 
-const themeNames = {
-    modern: 'Modern',
-    cyberpunk: 'Cyberpunk',
-    nes: 'NES',
-    nebula: 'Nebula'
-};
-
-function updateThemeSelectorUI(currentTheme) {
-    const selector = document.getElementById('theme-selector');
-    if (!selector) return;
-    const themeBtns = selector.querySelectorAll('.theme-btn');
-    themeBtns.forEach(btn => {
-        const val = btn.getAttribute('data-theme-value');
-        if (val === currentTheme) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
+// Theme Selector Logic (Modern / Cyberpunk / NES / Nebula)
+document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const theme = btn.dataset.themeValue;
+        const settings = Storage.getSettings();
+        settings.theme = theme;
+        Storage.saveSettings(settings);
+        applyTheme();
     });
-}
-
-// Theme Selector Event Listener
-const themeSelectorEl = document.getElementById('theme-selector');
-if (themeSelectorEl) {
-    themeSelectorEl.addEventListener('click', (e) => {
-        const btn = e.target.closest('.theme-btn');
-        if (!btn) return;
-        const selectedTheme = btn.getAttribute('data-theme-value');
-        if (selectedTheme) {
-            const settings = Storage.getSettings();
-            settings.theme = selectedTheme;
-            Storage.saveSettings(settings);
-            applyTheme();
-        }
-    });
-}
-
-// SFX Volume Slider Logic
+});
 
 
 
@@ -211,8 +189,8 @@ let listeningForBind = null;
 function loadSettingsUI() {
     const settings = Storage.getSettings();
     
-    // Set Theme selector UI state
-    updateThemeSelectorUI(settings.theme || 'modern');
+    // Reflect active theme in the theme selector
+    updateThemeSelectorUI(VALID_THEMES.includes(settings.theme) ? settings.theme : 'modern');
 
     // Set SFX Volume slider
     const sfxVol = settings.sfxVolume !== undefined ? settings.sfxVolume : 80;
@@ -234,7 +212,7 @@ function loadSettingsUI() {
         audioPlayer.setVolume(musicVol);
     }
 
-    document.querySelectorAll('.keybind-btn').forEach(btn => {
+    document.querySelectorAll('.keybind-btn:not(.theme-btn)').forEach(btn => {
         const action = btn.dataset.action;
         btn.innerText = settings[action] || 'Unbound';
         
@@ -242,7 +220,7 @@ function loadSettingsUI() {
         btn.parentNode.replaceChild(newBtn, btn);
         
         newBtn.addEventListener('click', () => {
-            document.querySelectorAll('.keybind-btn').forEach(b => b.classList.remove('listening'));
+            document.querySelectorAll('.keybind-btn:not(.theme-btn)').forEach(b => b.classList.remove('listening'));
             newBtn.classList.add('listening');
             newBtn.innerText = 'Press a key...';
             listeningForBind = { action, btn: newBtn };
@@ -331,6 +309,19 @@ document.querySelectorAll('.btn-player-prev').forEach(btn => {
 
 document.querySelectorAll('.btn-player-mode').forEach(btn => {
     btn.addEventListener('click', () => audioPlayer.toggleMode());
+});
+
+// Global menu-click SFX (Cyberpunk theme only - handled internally by cyberSFX)
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    // Skip keybind-listening captures and the theme selector itself, which already
+    // gives visual feedback; everything else gets a crisp UI blip on Cyberpunk.
+    if (btn.classList.contains('listening')) return;
+    if (typeof cyberSFX !== 'undefined') {
+        cyberSFX.init();
+        cyberSFX.playMenuClickSound();
+    }
 });
 
 // Input Hook for Game Actions
