@@ -23,6 +23,10 @@ class BackgroundFX {
         
         // Slow-drifting nebula cloud blobs for the Nebula theme
         this.nebulaBlobs = [];
+        this.zenLeaves = [];
+        this.oceanBubbles = [];
+        this.spookyBats = [];
+        this.spookyMist = [];
 
         this.resize();
         window.addEventListener('resize', () => this.resize());
@@ -30,6 +34,9 @@ class BackgroundFX {
         this.initParticles();
         this.init3DTetrominos();
         this.initNebulaBlobs();
+        this.initZenLeaves();
+        this.initOceanBubbles();
+        this.initSpooky();
         this.animate();
     }
 
@@ -123,9 +130,120 @@ class BackgroundFX {
         }
     }
 
+    initZenLeaves() {
+        this.zenLeaves = [];
+        const palette = ['#c9a227', '#b85d19', '#d49b35', '#88992e', '#9e4719', '#dfb738'];
+        const w = window.innerWidth, h = window.innerHeight;
+        for (let i = 0; i < 40; i++) {
+            this.zenLeaves.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                len: Math.random() * 14 + 10,
+                width: Math.random() * 6 + 4,
+                angle: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 0.02,
+                speedY: Math.random() * 0.6 + 0.3,
+                swaySpeed: Math.random() * 0.02 + 0.01,
+                swayAmp: Math.random() * 1.5 + 0.8,
+                swayPhase: Math.random() * Math.PI * 2,
+                color: palette[i % palette.length],
+                alpha: Math.random() * 0.45 + 0.35
+            });
+        }
+    }
+
+    initOceanBubbles() {
+        this.oceanBubbles = [];
+        const w = window.innerWidth, h = window.innerHeight;
+        for (let i = 0; i < 50; i++) {
+            this.oceanBubbles.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                r: Math.random() * 7 + 2.5,
+                speedY: Math.random() * 0.85 + 0.4,
+                wobbleSpeed: Math.random() * 0.035 + 0.015,
+                wobbleAmp: Math.random() * 1.2 + 0.6,
+                wobblePhase: Math.random() * Math.PI * 2,
+                alpha: Math.random() * 0.45 + 0.25
+            });
+        }
+    }
+
+    initSpooky() {
+        this.spookyBats = [];
+        this.spookyMist = [];
+        const w = window.innerWidth, h = window.innerHeight;
+        for (let i = 0; i < 7; i++) {
+            this.spookyBats.push({
+                x: Math.random() * w,
+                y: Math.random() * (h * 0.55),
+                speedX: -(Math.random() * 1.8 + 1.2),
+                speedY: 0,
+                wingPhase: Math.random() * Math.PI * 2,
+                wingSpeed: 0.22,
+                scale: Math.random() * 0.5 + 0.7
+            });
+        }
+        for (let i = 0; i < 5; i++) {
+            this.spookyMist.push({
+                x: Math.random() * w,
+                y: h * 0.65 + Math.random() * (h * 0.35),
+                r: Math.random() * 220 + 160,
+                speedX: (Math.random() - 0.5) * 0.18,
+                alpha: Math.random() * 0.12 + 0.06
+            });
+        }
+    }
+
     triggerScoreBurst(linesCleared) {
+        const currentTheme = document.body.getAttribute('data-theme') || 'modern';
         const cx = window.innerWidth / 2;
         const cy = window.innerHeight / 2;
+
+        if (currentTheme === 'zen') {
+            // Zen Garden: Swirl of warm golden leaves
+            const count = linesCleared >= 4 ? 30 : linesCleared * 8;
+            const palette = ['#c9a227', '#dfb738', '#b85d19', '#d49b35'];
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                this.zenLeaves.push({
+                    x: cx + (Math.random() - 0.5) * 100,
+                    y: cy + (Math.random() - 0.5) * 100,
+                    len: Math.random() * 12 + 10,
+                    width: Math.random() * 6 + 4,
+                    angle: angle,
+                    rotSpeed: (Math.random() - 0.5) * 0.05,
+                    speedY: Math.random() * 0.8 + 0.4,
+                    swaySpeed: 0.03,
+                    swayAmp: 2,
+                    swayPhase: Math.random() * Math.PI * 2,
+                    color: palette[i % palette.length],
+                    alpha: 0.8,
+                    isTemporary: true
+                });
+            }
+            return;
+        }
+
+        if (currentTheme === 'ocean') {
+            // Ocean: Burst of rising bubbles
+            const count = linesCleared >= 4 ? 40 : linesCleared * 12;
+            for (let i = 0; i < count; i++) {
+                this.oceanBubbles.push({
+                    x: cx + (Math.random() - 0.5) * 180,
+                    y: cy + (Math.random() - 0.5) * 120,
+                    r: Math.random() * 10 + 3,
+                    speedY: Math.random() * 2.5 + 1.2,
+                    wobbleSpeed: 0.05,
+                    wobbleAmp: 1.8,
+                    wobblePhase: Math.random() * Math.PI * 2,
+                    alpha: 0.75,
+                    isTemporary: true
+                });
+            }
+            return;
+        }
+
         const count = linesCleared >= 4 ? 70 : linesCleared * 18;
         const speed = linesCleared >= 4 ? 9 : 4.5;
 
@@ -140,6 +258,9 @@ class BackgroundFX {
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
             const pSpeed = (Math.random() * 0.85 + 0.15) * speed;
+            const pColor = currentTheme === 'spooky' 
+                ? (Math.random() > 0.5 ? '#ff7518' : '#39ff14')
+                : (Math.random() > 0.5 ? '#ff007f' : '#00ffff');
             this.particles.push({
                 x: cx,
                 y: cy,
@@ -149,7 +270,7 @@ class BackgroundFX {
                 alpha: 1,
                 decay: Math.random() * 0.02 + 0.01,
                 isBurst: true,
-                color: Math.random() > 0.5 ? '#ff007f' : '#00ffff'
+                color: pColor
             });
         }
     }
@@ -234,11 +355,258 @@ class BackgroundFX {
         const isCyberpunk = currentTheme === 'cyberpunk';
         const isNES = currentTheme === 'nes';
         const isNebula = currentTheme === 'nebula';
+        const isZen = currentTheme === 'zen';
+        const isOcean = currentTheme === 'ocean';
+        const isSpooky = currentTheme === 'spooky';
 
         const w = window.innerWidth;
         const h = window.innerHeight;
         this.ctx.clearRect(0, 0, w, h);
         const now = Date.now() * 0.001;
+
+        if (isZen) {
+            // Warm Sandstone / Zen Garden Background
+            const bgGrad = this.ctx.createLinearGradient(0, 0, 0, h);
+            bgGrad.addColorStop(0, '#1c150c');
+            bgGrad.addColorStop(1, '#100c07');
+            this.ctx.fillStyle = bgGrad;
+            this.ctx.fillRect(0, 0, w, h);
+
+            // Subtle sand ripple texture waves
+            this.ctx.save();
+            this.ctx.strokeStyle = 'rgba(201, 162, 39, 0.04)';
+            this.ctx.lineWidth = 1.5;
+            for (let y = 60; y < h; y += 75) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, y);
+                for (let x = 0; x <= w; x += 100) {
+                    const waveY = y + Math.sin(x * 0.015 + y * 0.01 + now * 0.2) * 12;
+                    this.ctx.lineTo(x, waveY);
+                }
+                this.ctx.stroke();
+            }
+            this.ctx.restore();
+
+            // Animate and draw falling Zen Leaves
+            for (let i = this.zenLeaves.length - 1; i >= 0; i--) {
+                const leaf = this.zenLeaves[i];
+                leaf.y += leaf.speedY;
+                leaf.x += Math.sin(leaf.swayPhase) * leaf.swayAmp;
+                leaf.swayPhase += leaf.swaySpeed;
+                leaf.angle += leaf.rotSpeed;
+
+                if (leaf.y > h + 30) {
+                    if (leaf.isTemporary) {
+                        this.zenLeaves.splice(i, 1);
+                        continue;
+                    }
+                    leaf.y = -20;
+                    leaf.x = Math.random() * w;
+                }
+                if (leaf.x < -30) leaf.x = w + 20;
+                if (leaf.x > w + 30) leaf.x = -20;
+
+                this.ctx.save();
+                this.ctx.translate(leaf.x, leaf.y);
+                this.ctx.rotate(leaf.angle);
+                this.ctx.fillStyle = leaf.color;
+                this.ctx.globalAlpha = leaf.alpha;
+
+                // Organic curved leaf shape
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, -leaf.len * 0.5);
+                this.ctx.quadraticCurveTo(leaf.width, 0, 0, leaf.len * 0.5);
+                this.ctx.quadraticCurveTo(-leaf.width, 0, 0, -leaf.len * 0.5);
+                this.ctx.fill();
+
+                // Leaf center vein
+                this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, -leaf.len * 0.45);
+                this.ctx.lineTo(0, leaf.len * 0.45);
+                this.ctx.stroke();
+
+                this.ctx.restore();
+            }
+
+            requestAnimationFrame(this._boundAnimate);
+            return;
+        }
+
+        if (isOcean) {
+            // Deep Ocean Abyss Gradient
+            const oceanGrad = this.ctx.createLinearGradient(0, 0, 0, h);
+            oceanGrad.addColorStop(0, '#041d3a');
+            oceanGrad.addColorStop(0.4, '#031326');
+            oceanGrad.addColorStop(1, '#010814');
+            this.ctx.fillStyle = oceanGrad;
+            this.ctx.fillRect(0, 0, w, h);
+
+            // Shimmering underwater sunbeam caustics from surface
+            this.ctx.save();
+            const rayCount = 5;
+            for (let i = 0; i < rayCount; i++) {
+                const rx = (w * 0.2) + (i * (w * 0.18)) + Math.sin(now * 0.35 + i) * 45;
+                const rGrad = this.ctx.createLinearGradient(rx, 0, rx + 80, h * 0.85);
+                rGrad.addColorStop(0, 'rgba(34, 211, 238, 0.14)');
+                rGrad.addColorStop(0.6, 'rgba(6, 182, 212, 0.04)');
+                rGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                this.ctx.fillStyle = rGrad;
+                this.ctx.beginPath();
+                this.ctx.moveTo(rx - 30, 0);
+                this.ctx.lineTo(rx + 30, 0);
+                this.ctx.lineTo(rx + 160, h * 0.85);
+                this.ctx.lineTo(rx + 70, h * 0.85);
+                this.ctx.closePath();
+                this.ctx.fill();
+            }
+            this.ctx.restore();
+
+            // Animate and draw rising Ocean Bubbles
+            for (let i = this.oceanBubbles.length - 1; i >= 0; i--) {
+                const b = this.oceanBubbles[i];
+                b.y -= b.speedY;
+                b.x += Math.sin(b.wobblePhase) * b.wobbleAmp;
+                b.wobblePhase += b.wobbleSpeed;
+
+                if (b.y < -20) {
+                    if (b.isTemporary) {
+                        this.oceanBubbles.splice(i, 1);
+                        continue;
+                    }
+                    b.y = h + 20;
+                    b.x = Math.random() * w;
+                }
+                if (b.x < -20) b.x = w + 10;
+                if (b.x > w + 20) b.x = -10;
+
+                this.ctx.save();
+                this.ctx.globalAlpha = b.alpha;
+
+                // Bubble outer translucent body
+                this.ctx.fillStyle = 'rgba(34, 211, 238, 0.18)';
+                this.ctx.strokeStyle = 'rgba(103, 232, 249, 0.65)';
+                this.ctx.lineWidth = 1.2;
+                this.ctx.beginPath();
+                this.ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.stroke();
+
+                // Specular reflection highlight on top-left of bubble
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                this.ctx.beginPath();
+                this.ctx.arc(b.x - b.r * 0.35, b.y - b.r * 0.35, Math.max(1, b.r * 0.28), 0, Math.PI * 2);
+                this.ctx.fill();
+
+                this.ctx.restore();
+            }
+
+            requestAnimationFrame(this._boundAnimate);
+            return;
+        }
+
+        if (isSpooky) {
+            // Eerie Crypt Night Gradient
+            const spookyGrad = this.ctx.createLinearGradient(0, 0, 0, h);
+            spookyGrad.addColorStop(0, '#0a0512');
+            spookyGrad.addColorStop(0.6, '#14081e');
+            spookyGrad.addColorStop(1, '#050208');
+            this.ctx.fillStyle = spookyGrad;
+            this.ctx.fillRect(0, 0, w, h);
+
+            // Rolling misty ground fog banks
+            for (let m of this.spookyMist) {
+                m.x += m.speedX;
+                if (m.x < -m.r) m.x = w + m.r;
+                if (m.x > w + m.r) m.x = -m.r;
+
+                const fogGrad = this.ctx.createRadialGradient(m.x, m.y, 20, m.x, m.y, m.r);
+                fogGrad.addColorStop(0, `rgba(200, 160, 240, ${m.alpha})`);
+                fogGrad.addColorStop(0.6, `rgba(120, 60, 180, ${m.alpha * 0.4})`);
+                fogGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                this.ctx.fillStyle = fogGrad;
+                this.ctx.beginPath();
+                this.ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+
+            // Animate flying bat silhouettes across the moonlit sky
+            for (let bat of this.spookyBats) {
+                bat.x += bat.speedX;
+                bat.wingPhase += bat.wingSpeed;
+                bat.y += Math.sin(bat.wingPhase * 0.5) * 1.2;
+
+                if (bat.x < -60) {
+                    bat.x = w + 40;
+                    bat.y = Math.random() * (h * 0.55);
+                }
+
+                this.ctx.save();
+                this.ctx.translate(bat.x, bat.y);
+                this.ctx.scale(bat.scale, bat.scale);
+
+                const wingFlap = Math.sin(bat.wingPhase) * 12;
+
+                // Bat body & ears
+                this.ctx.fillStyle = '#12051a';
+                this.ctx.beginPath();
+                this.ctx.ellipse(0, 0, 4, 7, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                // Bat Wings
+                this.ctx.beginPath();
+                // Left wing
+                this.ctx.moveTo(0, -2);
+                this.ctx.quadraticCurveTo(-12, -10 + wingFlap, -22, -2 + wingFlap * 0.7);
+                this.ctx.quadraticCurveTo(-14, 4, 0, 4);
+                // Right wing
+                this.ctx.moveTo(0, -2);
+                this.ctx.quadraticCurveTo(12, -10 + wingFlap, 22, -2 + wingFlap * 0.7);
+                this.ctx.quadraticCurveTo(14, 4, 0, 4);
+                this.ctx.fill();
+
+                // Eerie glowing pumpkin eyes
+                this.ctx.fillStyle = '#ff7518';
+                this.ctx.fillRect(-2, -4, 1.2, 1.2);
+                this.ctx.fillRect(1, -4, 1.2, 1.2);
+
+                this.ctx.restore();
+            }
+
+            // Subtle eerie ember dust particles
+            for (let i = this.particles.length - 1; i >= 0; i--) {
+                const p = this.particles[i];
+                if (p.isBurst) {
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    p.speedX *= 0.96;
+                    p.speedY *= 0.96;
+                    p.alpha -= p.decay;
+                    if (p.alpha <= 0) {
+                        this.particles.splice(i, 1);
+                        continue;
+                    }
+                } else {
+                    p.y -= p.speedY * 0.6;
+                    p.x += Math.sin(now + p.y * 0.02) * 0.4;
+                    if (p.y < 0) p.y = h;
+                    if (p.x < 0) p.x = w;
+                    if (p.x > w) p.x = 0;
+                    p.alpha = 0.35 + Math.sin(p.pulseAngle) * 0.2;
+                }
+                this.ctx.save();
+                this.ctx.globalAlpha = Math.max(0, p.alpha);
+                this.ctx.fillStyle = p.color || '#ff7518';
+                this.ctx.beginPath();
+                this.ctx.arc(p.x, p.y, p.size * 0.9, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.restore();
+            }
+
+            requestAnimationFrame(this._boundAnimate);
+            return;
+        }
 
         let isGlitching = this.glitchTimer > 0;
         if (isGlitching) {

@@ -229,6 +229,99 @@ class Game {
             ctx.strokeStyle = 'rgba(210, 155, 255, 0.45)';
             ctx.lineWidth = 1.5;
             ctx.strokeRect(x + 0.75, y + 0.75, size - 1.5, size - 1.5);
+        } else if (theme === 'zen') {
+            // Warm Sandstone & Polished Woodblock with fine grain lines
+            const border = 1;
+            const innerSize = size - border * 2;
+            
+            // Rich organic timber gradient
+            const grad = ctx.createLinearGradient(x, y, x, y + size);
+            grad.addColorStop(0, finalColor);
+            grad.addColorStop(1, 'rgba(42, 26, 12, 0.95)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(x + border, y + border, innerSize, innerSize);
+
+            // Fine organic wood grain lines
+            ctx.strokeStyle = 'rgba(60, 35, 10, 0.35)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x + border, y + size * 0.35);
+            ctx.bezierCurveTo(x + size * 0.3, y + size * 0.3, x + size * 0.7, y + size * 0.4, x + size - border, y + size * 0.35);
+            ctx.moveTo(x + border, y + size * 0.68);
+            ctx.bezierCurveTo(x + size * 0.3, y + size * 0.72, x + size * 0.7, y + size * 0.65, x + size - border, y + size * 0.68);
+            ctx.stroke();
+
+            // Chamfered wooden top/left warm highlight
+            ctx.fillStyle = 'rgba(255, 240, 200, 0.45)';
+            ctx.fillRect(x + border, y + border, innerSize, 2);
+            ctx.fillRect(x + border, y + border, 2, innerSize);
+
+            // Bottom/right carved wood shadow
+            ctx.fillStyle = 'rgba(30, 15, 5, 0.55)';
+            ctx.fillRect(x + border, y + size - border - 2, innerSize, 2);
+            ctx.fillRect(x + size - border - 2, y + border, 2, innerSize);
+
+            // Sandstone border outline
+            ctx.strokeStyle = 'rgba(201, 162, 39, 0.45)';
+            ctx.lineWidth = 1.2;
+            ctx.strokeRect(x + 0.6, y + 0.6, size - 1.2, size - 1.2);
+        } else if (theme === 'ocean') {
+            // Translucent Sea Glass / Coral with water caustic shimmer
+            const border = 1;
+            const innerSize = size - border * 2;
+
+            // Bioluminescent oceanic gradient
+            const grad = ctx.createLinearGradient(x, y, x + size, y + size);
+            grad.addColorStop(0, finalColor);
+            grad.addColorStop(1, 'rgba(2, 25, 55, 0.92)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(x + border, y + border, innerSize, innerSize);
+
+            // Water caustic shimmer ripple lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x + 3, y + 3);
+            ctx.quadraticCurveTo(x + size * 0.45, y + size * 0.2, x + size * 0.8, y + 4);
+            ctx.stroke();
+
+            // Inner bioluminescent water droplet core
+            ctx.fillStyle = 'rgba(34, 211, 238, 0.35)';
+            ctx.beginPath();
+            ctx.arc(x + size * 0.5, y + size * 0.55, size * 0.22, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Crisp sea-glass border accent
+            ctx.strokeStyle = 'rgba(103, 232, 249, 0.65)';
+            ctx.lineWidth = 1.2;
+            ctx.strokeRect(x + 0.6, y + 0.6, size - 1.2, size - 1.2);
+        } else if (theme === 'spooky') {
+            // Molten Pumpkin & Crypt Ember Block
+            const border = 1;
+            const innerSize = size - border * 2;
+
+            // Dark ember gradient with molten pumpkin core
+            const grad = ctx.createRadialGradient(x + size * 0.5, y + size * 0.5, 2, x + size * 0.5, y + size * 0.5, size * 0.7);
+            grad.addColorStop(0, finalColor);
+            grad.addColorStop(0.75, 'rgba(180, 60, 5, 0.9)');
+            grad.addColorStop(1, 'rgba(15, 6, 20, 0.95)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(x + border, y + border, innerSize, innerSize);
+
+            // Sinister carved bevel: top/left fiery highlight
+            ctx.fillStyle = 'rgba(255, 200, 100, 0.7)';
+            ctx.fillRect(x + border, y + border, innerSize, 2);
+            ctx.fillRect(x + border, y + border, 2, innerSize);
+
+            // Bottom/right dark charcoal shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+            ctx.fillRect(x + border, y + size - border - 2.5, innerSize, 2.5);
+            ctx.fillRect(x + size - border - 2.5, y + border, 2.5, innerSize);
+
+            // Jack-o'-lantern frame
+            ctx.strokeStyle = 'rgba(255, 117, 24, 0.55)';
+            ctx.lineWidth = 1.2;
+            ctx.strokeRect(x + 0.6, y + 0.6, size - 1.2, size - 1.2);
         } else {
             // Ultra High-End Modern 3D Glass Gradient Block
             const inset = 1;
@@ -516,7 +609,8 @@ class Game {
             if (typeof backgroundFX !== 'undefined') {
                 backgroundFX.triggerScoreBurst(linesCleared);
             }
-            if (document.body.getAttribute('data-theme') === 'cyberpunk') {
+            const currentTheme = document.body.getAttribute('data-theme') || 'modern';
+            if (currentTheme === 'cyberpunk') {
                 document.body.classList.remove('screen-glitch', 'screen-glitch-medium', 'screen-glitch-weak');
                 // Force reflow
                 void document.body.offsetWidth;
@@ -527,6 +621,11 @@ class Game {
                 } else if (linesCleared === 2) {
                     document.body.classList.add('screen-glitch-weak');
                 }
+            } else if (currentTheme === 'spooky' && linesCleared >= 4) {
+                document.body.classList.remove('lightning-flash');
+                void document.body.offsetWidth;
+                document.body.classList.add('lightning-flash');
+                setTimeout(() => document.body.classList.remove('lightning-flash'), 500);
             }
             
             // Level up every 10 lines
@@ -593,6 +692,15 @@ class Game {
         } else if (theme === 'nebula') {
             boardBg = 'rgba(10, 5, 24, 0.90)';
             gridStroke = 'rgba(180, 130, 255, 0.07)';
+        } else if (theme === 'zen') {
+            boardBg = 'rgba(22, 15, 8, 0.94)';
+            gridStroke = 'rgba(201, 162, 39, 0.07)';
+        } else if (theme === 'ocean') {
+            boardBg = 'rgba(2, 13, 28, 0.92)';
+            gridStroke = 'rgba(34, 211, 238, 0.07)';
+        } else if (theme === 'spooky') {
+            boardBg = 'rgba(9, 5, 13, 0.96)';
+            gridStroke = 'rgba(255, 117, 24, 0.08)';
         } else {
             boardBg = 'rgba(11, 13, 23, 0.92)';
             gridStroke = 'rgba(255, 255, 255, 0.04)';

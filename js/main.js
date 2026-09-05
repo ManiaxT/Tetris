@@ -146,7 +146,10 @@ const themeNames = {
     modern: 'Modern',
     cyberpunk: 'Cyberpunk',
     nes: 'NES',
-    nebula: 'Nebula'
+    nebula: 'Nebula',
+    zen: 'Zen',
+    ocean: 'Ocean',
+    spooky: 'Spooky'
 };
 
 function updateThemeSelectorUI(currentTheme) {

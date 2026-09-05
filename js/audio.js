@@ -443,8 +443,47 @@ class CyberSFX {
             gain.connect(this.ctx.destination);
             osc.start(now);
             osc.stop(now + 0.018);
+        } else if (theme === 'zen') {
+            // Warm Bamboo/Woodblock "tok"
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(460, now);
+            osc.frequency.exponentialRampToValueAtTime(320, now + 0.022);
+            gain.gain.setValueAtTime(0.13 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.022);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.022);
+        } else if (theme === 'ocean') {
+            // Rising water droplet "bloop"
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(420, now);
+            osc.frequency.exponentialRampToValueAtTime(620, now + 0.025);
+            gain.gain.setValueAtTime(0.09 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.025);
+        } else if (theme === 'spooky') {
+            // Dry bone snap / twig click
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(750, now);
+            osc.frequency.exponentialRampToValueAtTime(200, now + 0.015);
+            gain.gain.setValueAtTime(0.10 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.015);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.015);
         } else {
-            // Soft click for Modern/Cyberpunk
+            // Soft click for Modern/Cyberpunk/Nebula
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = 'sine';
@@ -473,6 +512,46 @@ class CyberSFX {
             osc.frequency.setValueAtTime(440, now + 0.02);
             gain.gain.setValueAtTime(0.16 * this.volume, now);
             gain.gain.setValueAtTime(0.001, now + 0.045);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.045);
+        } else if (theme === 'zen') {
+            // Bamboo pivot "clack"
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(540, now);
+            osc.frequency.exponentialRampToValueAtTime(720, now + 0.035);
+            gain.gain.setValueAtTime(0.13 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.035);
+        } else if (theme === 'ocean') {
+            // Swirling water bubble roll
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(580, now);
+            osc.frequency.linearRampToValueAtTime(820, now + 0.02);
+            osc.frequency.exponentialRampToValueAtTime(680, now + 0.04);
+            gain.gain.setValueAtTime(0.10 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.04);
+        } else if (theme === 'spooky') {
+            // Spectral flutter / bat wing flick
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(420, now);
+            osc.frequency.exponentialRampToValueAtTime(260, now + 0.045);
+            gain.gain.setValueAtTime(0.11 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
             osc.connect(gain);
             gain.connect(this.ctx.destination);
             osc.start(now);
@@ -511,6 +590,45 @@ class CyberSFX {
             gain.connect(this.ctx.destination);
             osc.start(now);
             osc.stop(now + 0.022);
+        } else if (theme === 'zen') {
+            // Wood block tap
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(210, now);
+            osc.frequency.exponentialRampToValueAtTime(95, now + 0.035);
+            gain.gain.setValueAtTime(0.15 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.035);
+        } else if (theme === 'ocean') {
+            // Submerged bubble pop
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(340, now);
+            osc.frequency.exponentialRampToValueAtTime(160, now + 0.04);
+            gain.gain.setValueAtTime(0.12 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.04);
+        } else if (theme === 'spooky') {
+            // Coffin knock
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(140, now);
+            osc.frequency.exponentialRampToValueAtTime(55, now + 0.04);
+            gain.gain.setValueAtTime(0.16 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.04);
         } else {
             // Modern/Cyberpunk land thud
             const osc = this.ctx.createOscillator();
@@ -546,6 +664,45 @@ class CyberSFX {
             gain.connect(this.ctx.destination);
             osc.start(now);
             osc.stop(now + 0.045);
+        } else if (theme === 'zen') {
+            // Heavy timber impact
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(240, now);
+            osc.frequency.exponentialRampToValueAtTime(55, now + 0.055);
+            gain.gain.setValueAtTime(0.19 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.055);
+        } else if (theme === 'ocean') {
+            // Deep underwater plunge
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(280, now);
+            osc.frequency.exponentialRampToValueAtTime(45, now + 0.06);
+            gain.gain.setValueAtTime(0.17 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.06);
+        } else if (theme === 'spooky') {
+            // Dungeon door slam / lightning impact
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, now);
+            osc.frequency.exponentialRampToValueAtTime(30, now + 0.065);
+            gain.gain.setValueAtTime(0.20 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.065);
         } else {
             // Modern hard drop
             const osc = this.ctx.createOscillator();
@@ -671,6 +828,176 @@ class CyberSFX {
                     bGain.connect(this.ctx.destination);
                     bOsc.start(now + i * 0.065);
                     bOsc.stop(now + i * 0.065 + dur);
+                });
+            }
+            return;
+        }
+
+        if (theme === 'zen') {
+            const vol = 0.20 * this.volume;
+            if (linesCleared === 1) {
+                // Kalimba tone: G4 -> C5
+                const notes = [392.00, 523.25];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.08);
+                    gain.gain.setValueAtTime(vol, now + i * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.35);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.08);
+                    osc.stop(now + i * 0.08 + 0.35);
+                });
+            } else if (linesCleared === 2) {
+                // Bamboo Chime chord: C5 + E5 + G5
+                const notes = [523.25, 659.25, 783.99];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.06);
+                    gain.gain.setValueAtTime(vol * 0.9, now + i * 0.06);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.45);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.06);
+                    osc.stop(now + i * 0.06 + 0.45);
+                });
+            } else if (linesCleared === 3) {
+                // Meditative Kalimba Pentatonic: C5 -> D5 -> G5 -> C6
+                const notes = [523.25, 587.33, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.05);
+                    gain.gain.setValueAtTime(vol * 0.9, now + i * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.55);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.05);
+                    osc.stop(now + i * 0.05 + 0.55);
+                });
+            } else if (linesCleared >= 4) {
+                // Zen Temple Singing Bowl / Bell Chime (Rich warm harmonics)
+                const harmonics = [261.63, 523.25, 783.99, 1046.50, 1318.51];
+                harmonics.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now);
+                    const hVol = (vol * 1.1) / (idx + 1);
+                    gain.gain.setValueAtTime(hVol, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 1.8);
+                });
+            }
+            return;
+        }
+
+        if (theme === 'ocean') {
+            const vol = 0.18 * this.volume;
+            if (linesCleared < 4) {
+                // Rising aquatic bubble cascade
+                const count = linesCleared * 3 + 2;
+                for (let i = 0; i < count; i++) {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    const startFreq = 400 + Math.random() * 300 + i * 80;
+                    osc.frequency.setValueAtTime(startFreq, now + i * 0.04);
+                    osc.frequency.exponentialRampToValueAtTime(startFreq + 280, now + i * 0.04 + 0.06);
+                    gain.gain.setValueAtTime(vol * 0.8, now + i * 0.04);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.06);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.04);
+                    osc.stop(now + i * 0.04 + 0.06);
+                }
+            } else {
+                // Grand Coral Reef Chime & Bioluminescent Bell Chord
+                const chord = [349.23, 440.00, 523.25, 698.46, 880.00, 1046.50];
+                chord.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.04);
+                    gain.gain.setValueAtTime(vol * 0.9, now + i * 0.04);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.04 + 1.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.04);
+                    osc.stop(now + i * 0.04 + 1.2);
+                });
+            }
+            return;
+        }
+
+        if (theme === 'spooky') {
+            const vol = 0.20 * this.volume;
+            if (linesCleared === 1) {
+                // Eerie diminished interval (D4 -> Ab4)
+                const notes = [293.66, 415.30];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.06);
+                    gain.gain.setValueAtTime(vol * 0.7, now + i * 0.06);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.35);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.06);
+                    osc.stop(now + i * 0.06 + 0.35);
+                });
+            } else if (linesCleared === 2) {
+                // Spooky minor progression (D4 -> F4 -> Bb4)
+                const notes = [293.66, 349.23, 466.16];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.05);
+                    gain.gain.setValueAtTime(vol * 0.7, now + i * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.4);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.05);
+                    osc.stop(now + i * 0.05 + 0.4);
+                });
+            } else if (linesCleared === 3) {
+                // Ghostly Theremin sweep
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(293.66, now);
+                osc.frequency.exponentialRampToValueAtTime(587.33, now + 0.15);
+                osc.frequency.exponentialRampToValueAtTime(415.30, now + 0.35);
+                gain.gain.setValueAtTime(vol, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            } else if (linesCleared >= 4) {
+                // Haunted Church Bell Toll & Gothic Pipe Organ Chord (D Minor: D3, F3, A3, D4)
+                const organNotes = [146.83, 174.61, 220.00, 293.66, 349.23];
+                organNotes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(vol * 0.75, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 1.4);
                 });
             }
             return;
