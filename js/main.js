@@ -132,6 +132,16 @@ document.getElementById('btn-save-score').addEventListener('click', () => {
     document.getElementById('game-over-buttons').classList.remove('hidden');
 });
 
+const playerNameInput = document.getElementById('player-name');
+if (playerNameInput) {
+    playerNameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('btn-save-score').click();
+        }
+    });
+}
+
 const themeNames = {
     modern: 'Modern',
     cyberpunk: 'Cyberpunk',
@@ -376,3 +386,10 @@ Input.onAction = (action, state) => {
 applyTheme();
 loadSettingsUI();
 updateMainLeaderboard();
+
+// User Interaction Audio Unlock (ensures Web Audio context starts cleanly)
+window.addEventListener('pointerdown', () => {
+    if (typeof cyberSFX !== 'undefined') {
+        cyberSFX.init();
+    }
+}, { once: true });

@@ -269,17 +269,17 @@ button:hover {
     box-sizing: border-box;
 }
 
-/* Custom scrollbar styling for cyberpunk & modern themes */
-.settings-scroll::-webkit-scrollbar, .panel-scroll::-webkit-scrollbar {
+/* Custom scrollbar styling for cyberpunk, modern & nebula themes */
+.settings-scroll::-webkit-scrollbar, .panel-scroll::-webkit-scrollbar, .scoreboard-content::-webkit-scrollbar {
     width: 6px;
 }
 
-.settings-scroll::-webkit-scrollbar-track, .panel-scroll::-webkit-scrollbar-track {
+.settings-scroll::-webkit-scrollbar-track, .panel-scroll::-webkit-scrollbar-track, .scoreboard-content::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 3px;
 }
 
-.settings-scroll::-webkit-scrollbar-thumb, .panel-scroll::-webkit-scrollbar-thumb {
+.settings-scroll::-webkit-scrollbar-thumb, .panel-scroll::-webkit-scrollbar-thumb, .scoreboard-content::-webkit-scrollbar-thumb {
     background: var(--accent-color);
     border-radius: 3px;
 }
@@ -406,6 +406,28 @@ td {
     display: flex;
     gap: 2rem;
     align-items: flex-start;
+    transition: transform 0.2s ease;
+}
+
+@media (max-height: 840px) {
+    .game-container {
+        transform: scale(0.92);
+        transform-origin: center center;
+    }
+}
+
+@media (max-height: 750px) {
+    .game-container {
+        transform: scale(0.82);
+        transform-origin: center center;
+    }
+}
+
+@media (max-height: 660px) {
+    .game-container {
+        transform: scale(0.72);
+        transform-origin: center center;
+    }
 }
 
 .side-panel {
@@ -456,8 +478,22 @@ canvas#hold-canvas, canvas#next-canvas {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    width: 350px;
+    width: 330px;
     z-index: 10;
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 1250px) {
+    .right-panels {
+        right: 1rem;
+        width: 270px;
+    }
+}
+
+@media (max-width: 1060px) {
+    .right-panels {
+        display: none;
+    }
 }
 
 .main-leaderboard {
@@ -724,37 +760,40 @@ body[data-theme="cyberpunk"] .glitch-text::after {
     100% { filter: hue-rotate(0deg) contrast(1); transform: translate(0); }
 }
 
-/* --- New UI Elements --- */
+/* --- Action Text Elements --- */
 #action-text-container {
     position: absolute;
-    top: 50%;
-    left: -180px; /* Position to the left of the board, below the hold box */
-    transform: translateY(-50%);
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     pointer-events: none;
     display: flex;
     flex-direction: column;
-    align-items: flex-end; /* Align text to the right side of this container (towards the board) */
+    align-items: center;
     justify-content: center;
     z-index: 100;
-    width: 150px;
+    width: 100%;
 }
 
 .action-popup {
-    font-size: 1.8rem;
-    font-weight: bold;
+    font-size: 2.2rem;
+    font-weight: 900;
     color: #fff;
     text-transform: uppercase;
-    animation: floatUpSide 1.5s ease-out forwards;
-    text-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color);
+    animation: actionPopupFloat 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    text-shadow: 0 0 12px var(--accent-color), 0 0 25px var(--accent-color);
     margin-bottom: 0.5rem;
     white-space: nowrap;
+    letter-spacing: 0.12rem;
+    text-align: center;
 }
 
-@keyframes floatUpSide {
-    0% { opacity: 0; transform: translateY(20px) scale(0.8); }
-    15% { opacity: 1; transform: translateY(0) scale(1.1); }
-    80% { opacity: 1; transform: translateY(-40px) scale(1); }
-    100% { opacity: 0; transform: translateY(-60px) scale(0.9); }
+@keyframes actionPopupFloat {
+    0% { opacity: 0; transform: scale(0.6) translateY(20px); }
+    18% { opacity: 1; transform: scale(1.15) translateY(-5px); }
+    30% { transform: scale(1) translateY(0); }
+    75% { opacity: 1; transform: scale(1) translateY(-25px); }
+    100% { opacity: 0; transform: scale(0.85) translateY(-50px); }
 }
 .top3-container {
     margin-top: 2rem;
@@ -1119,4 +1158,39 @@ body[data-theme="nebula"] .stat label {
 body[data-theme="nebula"] .stat p {
     color: #f1e9ff;
     font-weight: 800;
+}
+
+body[data-theme="nebula"] #scores-table tr:nth-child(1) td {
+    color: #ffd700;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.7);
+    font-size: 1.35rem;
+}
+
+body[data-theme="nebula"] #scores-table tr:nth-child(2) td {
+    color: #38bdf8;
+    text-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+    font-size: 1.3rem;
+}
+
+body[data-theme="nebula"] #scores-table tr:nth-child(3) td {
+    color: #f472b6;
+    text-shadow: 0 0 12px rgba(244, 114, 182, 0.7);
+    font-size: 1.28rem;
+}
+
+body[data-theme="modern"] #player-name,
+body:not([data-theme]) #player-name,
+body[data-theme="nebula"] #player-name {
+    border-radius: 12px;
+    border: 1px solid var(--panel-border);
+    background: rgba(15, 23, 42, 0.7);
+    font-weight: 700;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+body[data-theme="modern"] #player-name:focus,
+body:not([data-theme]) #player-name:focus,
+body[data-theme="nebula"] #player-name:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 15px var(--accent-color);
 }

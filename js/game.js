@@ -576,23 +576,47 @@ class Game {
     }
 
     draw() {
-        this.ctx.fillStyle = '#0f0f13';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        const boardW = COLS * BLOCK_SIZE;
+        const boardH = ROWS * BLOCK_SIZE;
+        const theme = document.body.getAttribute('data-theme') || 'modern';
 
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-        for(let r=0; r<=ROWS; r++) {
+        // Adaptive Theme Board Background & Grid
+        let boardBg = '#0b0d17';
+        let gridStroke = 'rgba(255, 255, 255, 0.04)';
+
+        if (theme === 'nes') {
+            boardBg = '#000000';
+            gridStroke = 'rgba(255, 255, 255, 0.04)';
+        } else if (theme === 'cyberpunk') {
+            boardBg = 'rgba(10, 2, 22, 0.94)';
+            gridStroke = 'rgba(255, 0, 128, 0.09)';
+        } else if (theme === 'nebula') {
+            boardBg = 'rgba(10, 5, 24, 0.90)';
+            gridStroke = 'rgba(180, 130, 255, 0.07)';
+        } else {
+            boardBg = 'rgba(11, 13, 23, 0.92)';
+            gridStroke = 'rgba(255, 255, 255, 0.04)';
+        }
+
+        this.ctx.fillStyle = boardBg;
+        this.ctx.fillRect(0, 0, boardW, boardH);
+
+        this.ctx.strokeStyle = gridStroke;
+        this.ctx.lineWidth = 1;
+        for (let r = 0; r <= ROWS; r++) {
             this.ctx.beginPath();
-            this.ctx.moveTo(0, r*BLOCK_SIZE);
-            this.ctx.lineTo(this.canvas.width, r*BLOCK_SIZE);
+            this.ctx.moveTo(0, r * BLOCK_SIZE);
+            this.ctx.lineTo(boardW, r * BLOCK_SIZE);
             this.ctx.stroke();
         }
-        for(let c=0; c<=COLS; c++) {
+        for (let c = 0; c <= COLS; c++) {
             this.ctx.beginPath();
-            this.ctx.moveTo(c*BLOCK_SIZE, 0);
-            this.ctx.lineTo(c*BLOCK_SIZE, this.canvas.height);
+            this.ctx.moveTo(c * BLOCK_SIZE, 0);
+            this.ctx.lineTo(c * BLOCK_SIZE, boardH);
             this.ctx.stroke();
         }
 
+        // Draw locked blocks
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 if (this.board[r][c]) {
@@ -603,16 +627,45 @@ class Game {
 
         if (!this.isGameOver) {
             const gy = this.getGhostY();
-            this.ctx.globalAlpha = 0.2;
-            for (let r = 0; r < this.currentPiece.shape.length; r++) {
-                for (let c = 0; c < this.currentPiece.shape[r].length; c++) {
-                    if (this.currentPiece.shape[r][c]) {
-                        this.drawBlock(this.currentPiece.x + c, gy + r, this.currentPiece.color);
+            const pieceColor = this.getLevelColor(this.currentPiece.color, this.level || 1);
+
+            // Clean, tournament-ready Ghost Piece Rendering
+            if (theme === 'nes') {
+                this.ctx.save();
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+                this.ctx.lineWidth = 2;
+                this.ctx.setLineDash([4, 4]);
+                for (let r = 0; r < this.currentPiece.shape.length; r++) {
+                    for (let c = 0; c < this.currentPiece.shape[r].length; c++) {
+                        if (this.currentPiece.shape[r][c]) {
+                            const gx = (this.currentPiece.x + c) * BLOCK_SIZE + 2;
+                            const gY = (gy + r) * BLOCK_SIZE + 2;
+                            this.ctx.strokeRect(gx, gY, BLOCK_SIZE - 4, BLOCK_SIZE - 4);
+                        }
                     }
                 }
+                this.ctx.restore();
+            } else {
+                this.ctx.save();
+                for (let r = 0; r < this.currentPiece.shape.length; r++) {
+                    for (let c = 0; c < this.currentPiece.shape[r].length; c++) {
+                        if (this.currentPiece.shape[r][c]) {
+                            const gx = (this.currentPiece.x + c) * BLOCK_SIZE + 1;
+                            const gY = (gy + r) * BLOCK_SIZE + 1;
+                            this.ctx.fillStyle = pieceColor;
+                            this.ctx.globalAlpha = 0.12;
+                            this.ctx.fillRect(gx, gY, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
+                            this.ctx.strokeStyle = pieceColor;
+                            this.ctx.globalAlpha = 0.55;
+                            this.ctx.lineWidth = 1.5;
+                            this.ctx.strokeRect(gx + 0.5, gY + 0.5, BLOCK_SIZE - 3, BLOCK_SIZE - 3);
+                        }
+                    }
+                }
+                this.ctx.restore();
             }
-            this.ctx.globalAlpha = 1.0;
 
+            // Draw active current piece
             for (let r = 0; r < this.currentPiece.shape.length; r++) {
                 for (let c = 0; c < this.currentPiece.shape[r].length; c++) {
                     if (this.currentPiece.shape[r][c]) {
