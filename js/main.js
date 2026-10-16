@@ -85,14 +85,32 @@ document.getElementById('btn-scoreboard-back').addEventListener('click', () => {
 });
 
 window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && document.getElementById('game-screen').classList.contains('active')) {
-        if(game && !game.isGameOver) {
-            game.isPaused = !game.isPaused;
-            if(game.isPaused) {
-                document.getElementById('pause-overlay').classList.remove('hidden');
-            } else {
-                document.getElementById('pause-overlay').classList.add('hidden');
-                game.lastTime = performance.now();
+    if (e.key === 'Escape') {
+        if (listeningForBind) {
+            // Cancel listening for keybind without reassigning
+            const settings = Storage.getSettings();
+            listeningForBind.btn.innerText = settings[listeningForBind.action] || 'Unbound';
+            listeningForBind.btn.classList.remove('listening');
+            listeningForBind = null;
+            return;
+        }
+        if (screens.settingsMenu.classList.contains('active')) {
+            document.getElementById('btn-settings-back').click();
+            return;
+        }
+        if (screens.scoreboardMenu.classList.contains('active')) {
+            document.getElementById('btn-scoreboard-back').click();
+            return;
+        }
+        if (screens.gameScreen.classList.contains('active')) {
+            if (game && !game.isGameOver) {
+                game.isPaused = !game.isPaused;
+                if (game.isPaused) {
+                    document.getElementById('pause-overlay').classList.remove('hidden');
+                } else {
+                    document.getElementById('pause-overlay').classList.add('hidden');
+                    game.lastTime = performance.now();
+                }
             }
         }
     }
@@ -126,10 +144,13 @@ document.getElementById('btn-menu').addEventListener('click', () => {
 document.getElementById('btn-save-score').addEventListener('click', () => {
     const nameInput = document.getElementById('player-name');
     const name = nameInput.value.trim().substring(0, 10);
-    Storage.saveScore(name, game.score, game.lines, game.level);
+    if (game) {
+        Storage.saveScore(name, game.score, game.lines, game.level);
+    }
     
     document.getElementById('name-input-container').classList.add('hidden');
     document.getElementById('game-over-buttons').classList.remove('hidden');
+    updateMainLeaderboard();
 });
 
 const playerNameInput = document.getElementById('player-name');
@@ -265,6 +286,7 @@ function loadSettingsUI() {
 
 window.addEventListener('keydown', (e) => {
     if (listeningForBind) {
+        if (e.key === 'Escape') return; // Cancel handled by Escape listener
         e.preventDefault();
         const { action, btn } = listeningForBind;
         const settings = Storage.getSettings();

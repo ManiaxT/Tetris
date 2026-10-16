@@ -71,7 +71,10 @@ class Game {
     getNextPiece() {
         while (this.bag.length <= 3) {
             const newBag = [...PIECE_TYPES];
-            newBag.sort(() => Math.random() - 0.5);
+            for (let i = newBag.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newBag[i], newBag[j]] = [newBag[j], newBag[i]];
+            }
             this.bag = newBag.concat(this.bag);
         }
         const p = new Piece(this.bag.pop());
@@ -106,7 +109,12 @@ class Game {
     drawHold() {
         this.holdCtx.clearRect(0, 0, 100, 100);
         if (this.holdPiece) {
+            this.holdCtx.save();
+            if (!this.canHold) {
+                this.holdCtx.globalAlpha = 0.42;
+            }
             this.drawPieceCentered(this.holdCtx, this.holdPiece, 100, 100);
+            this.holdCtx.restore();
         }
     }
 
@@ -381,6 +389,9 @@ class Game {
             this.currentPiece = this.getNextPiece();
         }
         this.canHold = false;
+        if (typeof cyberSFX !== 'undefined') {
+            cyberSFX.playHoldSound();
+        }
         this.drawHold();
         this.resetLockDelay();
     }
@@ -538,6 +549,7 @@ class Game {
         this.clearLines();
         this.currentPiece = this.getNextPiece();
         this.canHold = true;
+        this.drawHold();
         this.resetLockDelay();
         if (this.collides()) {
             this.gameOver();

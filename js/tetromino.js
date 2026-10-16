@@ -49,8 +49,8 @@ const COLORS = {
 class Piece {
     constructor(type) {
         this.type = type;
-        this.shape = SHAPES[type];
-        this.color = COLORS[type];
+        this.shape = SHAPES[type] ? SHAPES[type].map(row => [...row]) : [[1]];
+        this.color = COLORS[type] || '#ffffff';
         this.x = Math.floor((10 - this.shape[0].length) / 2);
         this.y = type === 'I' ? -1 : 0; 
     }

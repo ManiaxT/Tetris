@@ -572,6 +572,80 @@ class CyberSFX {
         }
     }
 
+    playHoldSound() {
+        this.init();
+        if (!this.ctx || this.volume <= 0) return;
+        const theme = this.getTheme();
+        const now = this.ctx.currentTime;
+
+        if (theme === 'nes') {
+            // Authentic 8-bit hold cue: quick ascending dual pulse
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(262, now);
+            osc.frequency.setValueAtTime(392, now + 0.025);
+            gain.gain.setValueAtTime(0.15 * this.volume, now);
+            gain.gain.setValueAtTime(0.001, now + 0.05);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        } else if (theme === 'zen') {
+            // Resonant singing bowl / soft metallic gong chime
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, now);
+            osc.frequency.exponentialRampToValueAtTime(528, now + 0.08);
+            gain.gain.setValueAtTime(0.16 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.08);
+        } else if (theme === 'ocean') {
+            // Deep resonant sonar ping
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(350, now);
+            osc.frequency.exponentialRampToValueAtTime(700, now + 0.05);
+            gain.gain.setValueAtTime(0.12 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.06);
+        } else if (theme === 'spooky') {
+            // Eerie hollow bell
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.exponentialRampToValueAtTime(310, now + 0.07);
+            gain.gain.setValueAtTime(0.14 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.07);
+        } else {
+            // Futuristic hold shimmer (Modern/Cyberpunk/Nebula)
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(480, now);
+            osc.frequency.exponentialRampToValueAtTime(720, now + 0.04);
+            gain.gain.setValueAtTime(0.08 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        }
+    }
+
     playDropSound() {
         this.init();
         if (!this.ctx || this.volume <= 0) return;
