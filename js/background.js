@@ -27,6 +27,9 @@ class BackgroundFX {
         this.oceanBubbles = [];
         this.spookyBats = [];
         this.spookyMist = [];
+        this.marioClouds = [];
+        this.marioCoins = [];
+        this.marioStars = [];
 
         this.resize();
         window.addEventListener('resize', () => this.resize());
@@ -37,6 +40,7 @@ class BackgroundFX {
         this.initZenLeaves();
         this.initOceanBubbles();
         this.initSpooky();
+        this.initMario();
         this.animate();
     }
 
@@ -195,6 +199,128 @@ class BackgroundFX {
         }
     }
 
+    initMario() {
+        this.marioClouds = [];
+        this.marioCoins = [];
+        this.marioStars = [];
+        const w = window.innerWidth, h = window.innerHeight;
+        
+        // 8-bit Clouds (drifting from right to left)
+        for (let i = 0; i < 6; i++) {
+            this.marioClouds.push({
+                x: Math.random() * w,
+                y: Math.random() * (h * 0.45),
+                scale: Math.random() * 0.5 + 0.75,
+                speedX: -(Math.random() * 0.35 + 0.15)
+            });
+        }
+
+        // Ambient rotating 8-bit Gold Coins bobbing in the breeze
+        for (let i = 0; i < 10; i++) {
+            this.marioCoins.push({
+                x: Math.random() * w,
+                y: Math.random() * (h * 0.85) + 30,
+                phase: Math.random() * Math.PI * 2,
+                bobPhase: Math.random() * Math.PI * 2,
+                rotSpeed: Math.random() * 0.04 + 0.03,
+                scale: Math.random() * 0.3 + 0.8,
+                alpha: Math.random() * 0.35 + 0.35
+            });
+        }
+    }
+
+    drawMarioCloud(ctx, x, y, scale) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(scale, scale);
+        
+        // Outer black pixel contour
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(-45, -12, 90, 36);
+        ctx.fillRect(-35, -24, 70, 48);
+        ctx.fillRect(-15, -34, 30, 58);
+
+        // Cloud White Body
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-42, -9, 84, 30);
+        ctx.fillRect(-32, -21, 64, 42);
+        ctx.fillRect(-12, -31, 24, 52);
+
+        // Cloud Lower Sky-blue Shadow
+        ctx.fillStyle = '#b0d4f8';
+        ctx.fillRect(-42, 12, 84, 9);
+        ctx.fillRect(-32, 9, 64, 6);
+
+        ctx.restore();
+    }
+
+    drawMarioCoin(ctx, x, y, scale, phase, alpha) {
+        const wFactor = Math.max(0.12, Math.abs(Math.cos(phase)));
+        const baseW = 11 * scale * wFactor;
+        const baseH = 17 * scale;
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+        ctx.translate(x, y);
+
+        // Black outline
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(-baseW - 1.5, -baseH / 2 - 1.5, (baseW * 2) + 3, baseH + 3);
+
+        // Gold coin body
+        ctx.fillStyle = '#fcd800';
+        ctx.fillRect(-baseW, -baseH / 2, baseW * 2, baseH);
+
+        // Inner shiny highlight slot
+        if (wFactor > 0.4) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-baseW * 0.35, -baseH * 0.35, Math.max(1.5, baseW * 0.7), baseH * 0.7);
+            ctx.fillStyle = '#ea9e22';
+            ctx.fillRect(-baseW * 0.15, -baseH * 0.25, Math.max(1, baseW * 0.3), baseH * 0.5);
+        }
+
+        ctx.restore();
+    }
+
+    drawMarioHills(ctx, w, h) {
+        ctx.save();
+        // Hill 1 (Left)
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.ellipse(w * 0.22, h, 140, 95, 0, Math.PI, 0);
+        ctx.fill();
+
+        ctx.fillStyle = '#00a800';
+        ctx.beginPath();
+        ctx.ellipse(w * 0.22, h, 136, 91, 0, Math.PI, 0);
+        ctx.fill();
+
+        // Hill 1 highlight
+        ctx.fillStyle = '#80d010';
+        ctx.beginPath();
+        ctx.ellipse(w * 0.20, h - 40, 30, 20, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Hill 2 (Right side)
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.ellipse(w * 0.82, h, 210, 125, 0, Math.PI, 0);
+        ctx.fill();
+
+        ctx.fillStyle = '#00a800';
+        ctx.beginPath();
+        ctx.ellipse(w * 0.82, h, 206, 121, 0, Math.PI, 0);
+        ctx.fill();
+
+        // Hill 2 highlight
+        ctx.fillStyle = '#80d010';
+        ctx.beginPath();
+        ctx.ellipse(w * 0.80, h - 55, 45, 28, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
     triggerScoreBurst(linesCleared) {
         const currentTheme = document.body.getAttribute('data-theme') || 'modern';
         const cx = window.innerWidth / 2;
@@ -240,6 +366,47 @@ class BackgroundFX {
                     alpha: 0.75,
                     isTemporary: true
                 });
+            }
+            return;
+        }
+
+        if (currentTheme === 'mario') {
+            // Mario: Leaping Gold Coin Shower
+            const count = linesCleared >= 4 ? 35 : linesCleared * 10;
+            for (let i = 0; i < count; i++) {
+                const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.6;
+                const spd = Math.random() * 7 + 4;
+                this.marioCoins.push({
+                    x: cx + (Math.random() - 0.5) * 80,
+                    y: cy + (Math.random() - 0.5) * 40,
+                    speedX: Math.cos(angle) * spd,
+                    speedY: Math.sin(angle) * spd,
+                    gravity: 0.22,
+                    phase: Math.random() * Math.PI * 2,
+                    rotSpeed: 0.18,
+                    scale: 1.15,
+                    alpha: 1.0,
+                    isBurst: true
+                });
+            }
+            if (linesCleared >= 4) {
+                // Multicolored jumping Super Stars
+                const starColors = ['#fcd800', '#00e000', '#00d0ff', '#ff3838', '#ff99ff'];
+                for (let i = 0; i < 22; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const spd = Math.random() * 8 + 3;
+                    this.marioStars.push({
+                        x: cx,
+                        y: cy,
+                        speedX: Math.cos(angle) * spd,
+                        speedY: Math.sin(angle) * spd,
+                        rot: 0,
+                        rotSpeed: (Math.random() - 0.5) * 0.2,
+                        size: Math.random() * 10 + 9,
+                        color: starColors[i % starColors.length],
+                        alpha: 1.0
+                    });
+                }
             }
             return;
         }
@@ -358,6 +525,7 @@ class BackgroundFX {
         const isZen = currentTheme === 'zen';
         const isOcean = currentTheme === 'ocean';
         const isSpooky = currentTheme === 'spooky';
+        const isMario = currentTheme === 'mario';
 
         const w = window.innerWidth;
         const h = window.innerHeight;
@@ -600,6 +768,86 @@ class BackgroundFX {
                 this.ctx.fillStyle = p.color || '#ff7518';
                 this.ctx.beginPath();
                 this.ctx.arc(p.x, p.y, p.size * 0.9, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.restore();
+            }
+
+            requestAnimationFrame(this._boundAnimate);
+            return;
+        }
+
+        if (isMario) {
+            // Super Mario Mushroom Kingdom Retro Dusk Sky
+            const marioSky = this.ctx.createLinearGradient(0, 0, 0, h);
+            marioSky.addColorStop(0, '#09162c');
+            marioSky.addColorStop(0.55, '#103058');
+            marioSky.addColorStop(1, '#18467d');
+            this.ctx.fillStyle = marioSky;
+            this.ctx.fillRect(0, 0, w, h);
+
+            // Horizon hills & Mario bushes
+            this.drawMarioHills(this.ctx, w, h);
+
+            // Animate and draw Mario Clouds
+            for (let cloud of this.marioClouds) {
+                cloud.x += cloud.speedX;
+                if (cloud.x < -120 * cloud.scale) {
+                    cloud.x = w + 120 * cloud.scale;
+                    cloud.y = Math.random() * (h * 0.45);
+                }
+                this.drawMarioCloud(this.ctx, cloud.x, cloud.y, cloud.scale);
+            }
+
+            // Animate and draw Mario Coins (ambient & bursting)
+            for (let i = this.marioCoins.length - 1; i >= 0; i--) {
+                const coin = this.marioCoins[i];
+                coin.phase += coin.rotSpeed;
+
+                if (coin.isBurst) {
+                    coin.x += coin.speedX;
+                    coin.y += coin.speedY;
+                    coin.speedY += coin.gravity;
+                    coin.alpha -= 0.015;
+                    if (coin.alpha <= 0 || coin.y > h + 50) {
+                        this.marioCoins.splice(i, 1);
+                        continue;
+                    }
+                } else {
+                    coin.bobPhase += 0.03;
+                    coin.y += Math.sin(coin.bobPhase) * 0.4;
+                    coin.x -= 0.2;
+                    if (coin.x < -30) coin.x = w + 30;
+                }
+
+                this.drawMarioCoin(this.ctx, coin.x, coin.y, coin.scale, coin.phase, coin.alpha);
+            }
+
+            // Animate Super Stars
+            for (let i = this.marioStars.length - 1; i >= 0; i--) {
+                const s = this.marioStars[i];
+                s.x += s.speedX;
+                s.y += s.speedY;
+                s.speedY += 0.15;
+                s.rot += s.rotSpeed;
+                s.alpha -= 0.018;
+
+                if (s.alpha <= 0 || s.y > h + 50) {
+                    this.marioStars.splice(i, 1);
+                    continue;
+                }
+
+                this.ctx.save();
+                this.ctx.translate(s.x, s.y);
+                this.ctx.rotate(s.rot);
+                this.ctx.globalAlpha = Math.max(0, s.alpha);
+                this.ctx.fillStyle = s.color;
+                // Draw 5-point star
+                this.ctx.beginPath();
+                for (let pt = 0; pt < 5; pt++) {
+                    this.ctx.lineTo(Math.cos((18 + pt * 72) * Math.PI / 180) * s.size, -Math.sin((18 + pt * 72) * Math.PI / 180) * s.size);
+                    this.ctx.lineTo(Math.cos((54 + pt * 72) * Math.PI / 180) * (s.size * 0.48), -Math.sin((54 + pt * 72) * Math.PI / 180) * (s.size * 0.48));
+                }
+                this.ctx.closePath();
                 this.ctx.fill();
                 this.ctx.restore();
             }

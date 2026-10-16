@@ -330,6 +330,47 @@ class Game {
             ctx.strokeStyle = 'rgba(255, 117, 24, 0.55)';
             ctx.lineWidth = 1.2;
             ctx.strokeRect(x + 0.6, y + 0.6, size - 1.2, size - 1.2);
+        } else if (theme === 'mario') {
+            // Authentic Super Mario 8-Bit Pixel Block (Question Block / Castle Brick Style)
+            const border = Math.max(1, Math.floor(size / 14));
+            const inset = Math.max(2, Math.floor(size / 8));
+            const rivetOffset = Math.max(3, Math.floor(size / 5.5));
+            const rivetSize = Math.max(2, Math.floor(size / 9));
+
+            // Outer dark pixel border
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x, y, size, size);
+
+            // Base block fill
+            ctx.fillStyle = finalColor;
+            ctx.fillRect(x + border, y + border, size - border * 2, size - border * 2);
+
+            // 8-bit top and left bevel highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.fillRect(x + border, y + border, size - border * 2, inset);
+            ctx.fillRect(x + border, y + border, inset, size - border * 2);
+
+            // 8-bit bottom and right bevel shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+            ctx.fillRect(x + border, y + size - border - inset, size - border * 2, inset);
+            ctx.fillRect(x + size - border - inset, y + border, inset, size - border * 2);
+
+            // 4 Iconic Corner Rivets (Super Mario Bros metal/brick block bolts)
+            const corners = [
+                [x + rivetOffset, y + rivetOffset],
+                [x + size - rivetOffset - rivetSize, y + rivetOffset],
+                [x + rivetOffset, y + size - rivetOffset - rivetSize],
+                [x + size - rivetOffset - rivetSize, y + size - rivetOffset - rivetSize]
+            ];
+
+            for (const [rx, ry] of corners) {
+                // Dark rivet base
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+                ctx.fillRect(rx, ry, rivetSize, rivetSize);
+                // Rivet specular pixel highlight
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                ctx.fillRect(rx, ry, Math.max(1, Math.floor(rivetSize / 2)), Math.max(1, Math.floor(rivetSize / 2)));
+            }
         } else {
             // Ultra High-End Modern 3D Glass Gradient Block
             const inset = 1;
@@ -713,6 +754,9 @@ class Game {
         } else if (theme === 'spooky') {
             boardBg = 'rgba(9, 5, 13, 0.96)';
             gridStroke = 'rgba(255, 117, 24, 0.08)';
+        } else if (theme === 'mario') {
+            boardBg = 'rgba(11, 25, 48, 0.94)';
+            gridStroke = 'rgba(252, 216, 0, 0.08)';
         } else {
             boardBg = 'rgba(11, 13, 23, 0.92)';
             gridStroke = 'rgba(255, 255, 255, 0.04)';
@@ -750,9 +794,9 @@ class Game {
             const pieceColor = this.getLevelColor(this.currentPiece.color, this.level || 1);
 
             // Clean, tournament-ready Ghost Piece Rendering
-            if (theme === 'nes') {
+            if (theme === 'nes' || theme === 'mario') {
                 this.ctx.save();
-                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+                this.ctx.strokeStyle = theme === 'mario' ? 'rgba(252, 216, 0, 0.65)' : 'rgba(255, 255, 255, 0.45)';
                 this.ctx.lineWidth = 2;
                 this.ctx.setLineDash([4, 4]);
                 for (let r = 0; r < this.currentPiece.shape.length; r++) {

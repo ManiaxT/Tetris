@@ -482,6 +482,19 @@ class CyberSFX {
             gain.connect(this.ctx.destination);
             osc.start(now);
             osc.stop(now + 0.015);
+        } else if (theme === 'mario') {
+            // Classic Mario step/click (crisp 180Hz square blip)
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(180, now);
+            osc.frequency.setValueAtTime(120, now + 0.012);
+            gain.gain.setValueAtTime(0.12 * this.volume, now);
+            gain.gain.setValueAtTime(0.001, now + 0.02);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.02);
         } else {
             // Soft click for Modern/Cyberpunk/Nebula
             const osc = this.ctx.createOscillator();
@@ -556,6 +569,19 @@ class CyberSFX {
             gain.connect(this.ctx.destination);
             osc.start(now);
             osc.stop(now + 0.045);
+        } else if (theme === 'mario') {
+            // Authentic Super Mario Jump Sound (rapid 140Hz -> 580Hz square sweep)
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(140, now);
+            osc.frequency.exponentialRampToValueAtTime(580, now + 0.08);
+            gain.gain.setValueAtTime(0.15 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.085);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.085);
         } else {
             // Modern/Cyberpunk rotate blip
             const osc = this.ctx.createOscillator();
@@ -630,6 +656,21 @@ class CyberSFX {
             gain.connect(this.ctx.destination);
             osc.start(now);
             osc.stop(now + 0.07);
+        } else if (theme === 'mario') {
+            // Super Mario Item Sprout / Warp Pipe Arpeggio
+            const notes = [261.6, 329.6, 392.0, 523.2, 659.2];
+            notes.forEach((freq, idx) => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(freq, now + idx * 0.022);
+                gain.gain.setValueAtTime(0.13 * this.volume, now + idx * 0.022);
+                gain.gain.setValueAtTime(0.001, now + (idx + 1) * 0.022);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now + idx * 0.022);
+                osc.stop(now + (idx + 1) * 0.022);
+            });
         } else {
             // Futuristic hold shimmer (Modern/Cyberpunk/Nebula)
             const osc = this.ctx.createOscillator();
@@ -703,6 +744,19 @@ class CyberSFX {
             gain.connect(this.ctx.destination);
             osc.start(now);
             osc.stop(now + 0.04);
+        } else if (theme === 'mario') {
+            // Mario block bump sound (hitting a brick block)
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(115, now);
+            osc.frequency.exponentialRampToValueAtTime(55, now + 0.035);
+            gain.gain.setValueAtTime(0.14 * this.volume, now);
+            gain.gain.setValueAtTime(0.001, now + 0.035);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.035);
         } else {
             // Modern/Cyberpunk land thud
             const osc = this.ctx.createOscillator();
@@ -777,6 +831,19 @@ class CyberSFX {
             gain.connect(this.ctx.destination);
             osc.start(now);
             osc.stop(now + 0.065);
+        } else if (theme === 'mario') {
+            // Super Mario Goomba Stomp / Shell Kick Thud
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(420, now);
+            osc.frequency.exponentialRampToValueAtTime(65, now + 0.05);
+            gain.gain.setValueAtTime(0.20 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.055);
         } else {
             // Modern hard drop
             const osc = this.ctx.createOscillator();
@@ -903,6 +970,52 @@ class CyberSFX {
                     bOsc.start(now + i * 0.065);
                     bOsc.stop(now + i * 0.065 + dur);
                 });
+            }
+            return;
+        }
+
+        if (theme === 'mario') {
+            const vol = 0.22 * this.volume;
+            if (linesCleared >= 4) {
+                // THE FAMOUS SUPER MARIO 6-NOTE 1-UP JINGLE!
+                // Notes: E5 (659.25), G5 (783.99), E6 (1318.51), C6 (1046.50), D6 (1174.66), G6 (1567.98)
+                const notes = [659.25, 783.99, 1318.51, 1046.50, 1174.66, 1567.98];
+                const noteDur = 0.075;
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'square';
+                    const startTime = now + idx * noteDur;
+                    const dur = idx === 5 ? 0.35 : noteDur * 0.95;
+                    osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(vol * 1.15, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + dur);
+                });
+            } else {
+                // THE ICONIC MARIO COIN DING (B5: 987.77Hz for 0.055s -> E6: 1318.51Hz for 0.35s)
+                const playCoin = (delay) => {
+                    const t = now + delay;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(987.77, t);
+                    osc.frequency.setValueAtTime(1318.51, t + 0.055);
+                    gain.gain.setValueAtTime(vol * 1.1, t);
+                    gain.gain.setValueAtTime(vol * 1.25, t + 0.055);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.36);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.36);
+                };
+
+                for (let c = 0; c < linesCleared; c++) {
+                    playCoin(c * 0.09);
+                }
             }
             return;
         }
@@ -1161,6 +1274,24 @@ class CyberSFX {
                 osc.start(now + i * 0.05);
                 osc.stop(now + i * 0.05 + dur);
             });
+        } else if (theme === 'mario') {
+            // Super Mario Flagpole / Victory Fanfare
+            const notes = [392.00, 523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 1318.51, 1046.50];
+            notes.forEach((freq, i) => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                const startTime = now + i * 0.055;
+                const isLast = i === notes.length - 1;
+                const dur = isLast ? 0.35 : 0.05;
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0.20 * this.volume, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + dur);
+            });
         } else {
             this.playScoreSound(4, true);
         }
@@ -1186,6 +1317,32 @@ class CyberSFX {
                 gain.connect(this.ctx.destination);
                 osc.start(now + i * 0.07);
                 osc.stop(now + i * 0.07 + dur);
+            });
+        } else if (theme === 'mario') {
+            // Classic Super Mario Game Over Motif (B4, F5, F5, F5, E5, D5, C5)
+            const melody = [
+                { f: 493.88, d: 0.12 },
+                { f: 698.46, d: 0.12 },
+                { f: 698.46, d: 0.08 },
+                { f: 698.46, d: 0.12 },
+                { f: 659.25, d: 0.12 },
+                { f: 587.33, d: 0.12 },
+                { f: 523.25, d: 0.40 }
+            ];
+            let offset = 0;
+            melody.forEach((note) => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                const startTime = now + offset;
+                osc.frequency.setValueAtTime(note.f, startTime);
+                gain.gain.setValueAtTime(0.20 * this.volume, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + note.d);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + note.d);
+                offset += note.d * 1.05;
             });
         } else {
             const osc = this.ctx.createOscillator();

@@ -76,6 +76,17 @@
     --font-family: 'Inter', -apple-system, sans-serif;
 }
 
+[data-theme="mario"] {
+    --bg-color: #0b1a30;
+    --text-color: #ffffff;
+    --accent-color: #fcd800;
+    --accent-hover: #ffe44d;
+    --panel-bg: rgba(13, 34, 64, 0.92);
+    --panel-border: #fcd800;
+    --grid-color: rgba(252, 216, 0, 0.08);
+    --font-family: 'Press Start 2P', 'Courier New', monospace;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -1501,4 +1512,121 @@ body[data-theme="spooky"] #player-name {
     38% { filter: brightness(4.0) contrast(2.2); }
     65% { filter: brightness(1.3); }
     100% { filter: brightness(1); }
+}
+
+/* ==========================================================================
+   Super Mario Theme Rules
+   ========================================================================== */
+body[data-theme="mario"] {
+    background-color: #0b1a30;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+}
+
+body[data-theme="mario"] .tetris-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 3.8rem;
+    letter-spacing: 0.35rem;
+    color: #e52521; /* Mario Red */
+    text-shadow: 4px 4px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000, 0 0 25px rgba(252, 216, 0, 0.8);
+}
+
+body[data-theme="mario"] .panel-box,
+body[data-theme="mario"] .board-container,
+body[data-theme="mario"] .settings-content,
+body[data-theme="mario"] .scoreboard-content {
+    background: rgba(12, 28, 54, 0.94);
+    border: 4px solid #fcd800;
+    border-radius: 0px; /* Sharp 8-bit NES arcade pixel corners */
+    box-shadow: 6px 6px 0px #000000, inset 2px 2px 0px rgba(255, 255, 255, 0.45), inset -2px -2px 0px rgba(0, 0, 0, 0.65);
+}
+
+body[data-theme="mario"] button {
+    background: #e52521;
+    border: 3px solid #ffffff;
+    border-radius: 0px;
+    color: #ffffff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.05rem;
+    box-shadow: 4px 4px 0px #000000;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+}
+
+body[data-theme="mario"] button:hover {
+    background: #fcd800;
+    color: #000000;
+    border-color: #ffffff;
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #000000;
+}
+
+body[data-theme="mario"] button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000000;
+}
+
+body[data-theme="mario"] h2,
+body[data-theme="mario"] h3 {
+    font-family: 'Press Start 2P', monospace;
+    color: #fcd800;
+    font-size: 1.15rem;
+    letter-spacing: 0.06rem;
+    text-shadow: 2px 2px 0px #000000;
+}
+
+body[data-theme="mario"] .stat label {
+    font-family: 'Press Start 2P', monospace;
+    color: #fcd800;
+    font-size: 0.68rem;
+}
+
+body[data-theme="mario"] .stat p {
+    font-family: 'Press Start 2P', monospace;
+    color: #ffffff;
+    font-size: 1.1rem;
+    text-shadow: 2px 2px 0px #000000;
+}
+
+body[data-theme="mario"] #scores-table th {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.65rem;
+    color: #fcd800;
+    border-bottom: 2px solid #fcd800;
+}
+
+body[data-theme="mario"] #scores-table td {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.68rem;
+}
+
+body[data-theme="mario"] #scores-table tr:nth-child(1) td {
+    color: #fcd800;
+    text-shadow: 2px 2px 0px #000000;
+}
+
+body[data-theme="mario"] #scores-table tr:nth-child(2) td {
+    color: #00e000;
+    text-shadow: 2px 2px 0px #000000;
+}
+
+body[data-theme="mario"] #scores-table tr:nth-child(3) td {
+    color: #00d0ff;
+    text-shadow: 2px 2px 0px #000000;
+}
+
+body[data-theme="mario"] #player-name {
+    border-radius: 0px;
+    border: 3px solid #fcd800;
+    background: #091527;
+    color: #fcd800;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 1rem;
+    box-shadow: 4px 4px 0px #000000;
+}
+
+body[data-theme="mario"] .action-popup {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 1.6rem;
+    color: #fcd800;
+    text-shadow: 3px 3px 0px #000000, 0 0 15px rgba(252, 216, 0, 0.9);
 }

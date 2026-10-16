@@ -170,7 +170,8 @@ const themeNames = {
     nebula: 'Nebula',
     zen: 'Zen',
     ocean: 'Ocean',
-    spooky: 'Spooky'
+    spooky: 'Spooky',
+    mario: 'Super Mario'
 };
 
 function updateThemeSelectorUI(currentTheme) {
