@@ -30,6 +30,10 @@ class BackgroundFX {
         this.marioClouds = [];
         this.marioCoins = [];
         this.marioStars = [];
+        this.cyberBuildings = [];
+        this.cyberSpinners = [];
+        this.cyberRain = [];
+        this.cyberSurge = 0;
 
         this.resize();
         window.addEventListener('resize', () => this.resize());
@@ -41,6 +45,7 @@ class BackgroundFX {
         this.initOceanBubbles();
         this.initSpooky();
         this.initMario();
+        this.initCyberCity();
         this.animate();
     }
 
@@ -54,6 +59,7 @@ class BackgroundFX {
         this.canvas.style.height = h + 'px';
         this.ctx.scale(dpr, dpr);
         this._sunGradCacheKey = null;
+        this.initCyberCity();
     }
 
     initParticles() {
@@ -321,10 +327,321 @@ class BackgroundFX {
         ctx.restore();
     }
 
+    initCyberCity() {
+        this.cyberBuildings = [];
+        this.cyberSpinners = [];
+        this.cyberRain = [];
+        const w = window.innerWidth || 1200;
+        const h = window.innerHeight || 800;
+
+        // Generate layered 16-bit skyscrapers
+        let currentX = -40;
+        const neonPalette = ['#ff007f', '#00f0ff', '#fcd800', '#a855f7'];
+        const signs = ['NEO', 'TETRIS', '16-BIT', 'CYBER', 'CORP', 'MATRIX', 'AI', 'RAM'];
+
+        while (currentX < w + 60) {
+            const bWidth = Math.floor(Math.random() * 55) + 65;
+            const bHeight = Math.floor(Math.random() * (h * 0.45)) + (h * 0.28);
+            const isFront = Math.random() > 0.45;
+            
+            // Generate window matrix for building
+            const rows = Math.floor(bHeight / 16);
+            const cols = Math.floor((bWidth - 16) / 10);
+            const windows = [];
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (Math.random() > 0.35) { // 65% lit windows
+                        windows.push({
+                            r: r,
+                            c: c,
+                            color: Math.random() > 0.7 ? '#00f0ff' : (Math.random() > 0.5 ? '#ff007f' : '#ffe680'),
+                            flicker: Math.random() > 0.9
+                        });
+                    }
+                }
+            }
+
+            // Optional rooftop antenna / beacon
+            const hasAntenna = Math.random() > 0.35;
+            const antennaHeight = Math.floor(Math.random() * 35) + 20;
+
+            // Optional neon billboard sign
+            const hasSign = Math.random() > 0.5;
+            const signText = signs[Math.floor(Math.random() * signs.length)];
+            const signColor = neonPalette[Math.floor(Math.random() * neonPalette.length)];
+
+            this.cyberBuildings.push({
+                x: currentX,
+                w: bWidth,
+                h: bHeight,
+                isFront: isFront,
+                bodyColor: isFront ? '#0d041c' : '#070110',
+                edgeColor: isFront ? 'rgba(255, 0, 128, 0.45)' : 'rgba(0, 240, 255, 0.25)',
+                windows: windows,
+                cols: cols,
+                hasAntenna: hasAntenna,
+                antennaHeight: antennaHeight,
+                hasSign: hasSign,
+                signText: signText,
+                signColor: signColor,
+                signY: Math.floor(Math.random() * (bHeight * 0.4)) + 20
+            });
+
+            currentX += bWidth - 12; // slight overlap
+        }
+
+        // Flying Spinners (Hover-cars traffic streams)
+        for (let i = 0; i < 9; i++) {
+            const dir = i % 2 === 0 ? 1 : -1;
+            this.cyberSpinners.push({
+                x: Math.random() * w,
+                y: (h * 0.15) + (i * (h * 0.065)) + (Math.random() * 20),
+                speed: (Math.random() * 1.6 + 1.8) * dir,
+                dir: dir,
+                scale: Math.random() * 0.35 + 0.8,
+                color: dir === 1 ? '#00f0ff' : '#ff007f', // Cyan heading right, hot pink heading left
+                trailLen: Math.floor(Math.random() * 35) + 30
+            });
+        }
+
+        // Digital Neon Rain
+        for (let i = 0; i < 45; i++) {
+            this.cyberRain.push({
+                x: Math.random() * (w + 200) - 100,
+                y: Math.random() * h,
+                len: Math.random() * 18 + 12,
+                speedY: Math.random() * 8 + 12,
+                speedX: -2.2, // diagonal slant
+                alpha: Math.random() * 0.35 + 0.2,
+                color: Math.random() > 0.5 ? 'rgba(0, 240, 255, ' : 'rgba(255, 0, 128, '
+            });
+        }
+    }
+
+    drawCyberCity(ctx, w, h, now) {
+        // 1. Atmosphere: 16-Bit Night Sky with Neon Haze
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+        skyGrad.addColorStop(0, '#04000b');
+        skyGrad.addColorStop(0.5, '#120224');
+        skyGrad.addColorStop(0.85, '#24043d');
+        skyGrad.addColorStop(1, '#3b004d');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Distant Glowing 16-Bit Cyber Sun / Data Moon
+        const sunX = w * 0.5;
+        const sunY = h * 0.42;
+        const sunR = Math.min(w, h) * 0.22;
+        const sunGlow = ctx.createRadialGradient(sunX, sunY, sunR * 0.2, sunX, sunY, sunR * 1.5);
+        sunGlow.addColorStop(0, 'rgba(255, 0, 128, 0.35)');
+        sunGlow.addColorStop(0.6, 'rgba(0, 240, 255, 0.12)');
+        sunGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = sunGlow;
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, sunR * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 16-Bit Sun Body with horizontal neon bands
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
+        ctx.clip();
+        const sunBodyGrad = ctx.createLinearGradient(sunX, sunY - sunR, sunX, sunY + sunR);
+        sunBodyGrad.addColorStop(0, '#fcd800');
+        sunBodyGrad.addColorStop(0.45, '#ff007f');
+        sunBodyGrad.addColorStop(1, '#8b00ff');
+        ctx.fillStyle = sunBodyGrad;
+        ctx.fillRect(sunX - sunR, sunY - sunR, sunR * 2, sunR * 2);
+
+        // Horizontal synth scanline cuts
+        ctx.fillStyle = '#060112';
+        const numStripes = 8;
+        for (let i = 0; i < numStripes; i++) {
+            const sy = sunY + (i * (sunR * 1.1 / numStripes)) - 10;
+            const sh = (i + 1) * 2;
+            ctx.fillRect(sunX - sunR, sy, sunR * 2, sh);
+        }
+        ctx.restore();
+
+        // 2. Skyscrapers (Layered 16-Bit Skyline)
+        const isSurging = this.cyberSurge > 0;
+        if (this.cyberSurge > 0) this.cyberSurge--;
+
+        for (let b of this.cyberBuildings) {
+            const bx = b.x;
+            const by = h - b.h;
+
+            // Building silhouette
+            ctx.fillStyle = isSurging ? '#250840' : b.bodyColor;
+            ctx.fillRect(bx, by, b.w, b.h);
+
+            // Neon roof and side edge
+            ctx.strokeStyle = isSurging ? '#00f0ff' : b.edgeColor;
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(bx, by, b.w, b.h);
+
+            // Antenna with blinking aircraft beacon
+            if (b.hasAntenna) {
+                const ax = bx + b.w * 0.5;
+                ctx.strokeStyle = '#22083a';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(ax, by);
+                ctx.lineTo(ax, by - b.antennaHeight);
+                ctx.stroke();
+
+                // Blinking red warning beacon light
+                const beaconPhase = Math.sin(now * 4 + bx) > 0;
+                if (beaconPhase || isSurging) {
+                    ctx.fillStyle = isSurging ? '#00f0ff' : '#ff1838';
+                    ctx.beginPath();
+                    ctx.arc(ax, by - b.antennaHeight, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Lit 16-Bit Windows
+            const winW = 3;
+            const winH = 4;
+            const startX = bx + 8;
+            const startY = by + 10;
+
+            for (let win of b.windows) {
+                const wx = startX + win.c * 8;
+                const wy = startY + win.r * 12;
+                if (wy > h - 40) continue;
+
+                // Subtle flicker
+                let alpha = 0.85;
+                if (win.flicker && Math.sin(now * 5 + wx) > 0.6) {
+                    alpha = 0.2;
+                }
+                if (isSurging) alpha = 1.0;
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = isSurging ? '#00f0ff' : win.color;
+                ctx.fillRect(wx, wy, winW, winH);
+                ctx.restore();
+            }
+
+            // Neon Sign / Hologram Billboard
+            if (b.hasSign) {
+                const sx = bx + b.w * 0.5;
+                const sy = by + b.signY;
+
+                ctx.save();
+                ctx.font = '10px "Orbitron", monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const signPulse = 0.75 + Math.sin(now * 3 + bx) * 0.25;
+                ctx.globalAlpha = isSurging ? 1.0 : signPulse;
+                ctx.fillStyle = isSurging ? '#ffffff' : b.signColor;
+                ctx.shadowColor = b.signColor;
+                ctx.shadowBlur = isSurging ? 18 : 8;
+
+                // Vertical billboard frame
+                ctx.strokeStyle = b.signColor;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(sx - 18, sy - 12, 36, 24);
+                ctx.fillText(b.signText, sx, sy);
+                ctx.restore();
+            }
+        }
+
+        // 3. Flying Aerocars / Spinners (Traffic Streams)
+        for (let s of this.cyberSpinners) {
+            s.x += s.speed;
+            if (s.dir === 1 && s.x > w + 60) s.x = -60;
+            if (s.dir === -1 && s.x < -60) s.x = w + 60;
+
+            ctx.save();
+            ctx.translate(s.x, s.y);
+
+            // Laser trail
+            const trailGrad = ctx.createLinearGradient(0, 0, -s.trailLen * s.dir, 0);
+            trailGrad.addColorStop(0, s.color);
+            trailGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.strokeStyle = trailGrad;
+            ctx.lineWidth = 2 * s.scale;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-s.trailLen * s.dir, 0);
+            ctx.stroke();
+
+            // Aerocar 16-bit body
+            ctx.fillStyle = '#0a0316';
+            ctx.fillRect(-6 * s.scale, -2.5 * s.scale, 12 * s.scale, 5 * s.scale);
+            // Glowing headlights/taillights
+            ctx.fillStyle = s.color;
+            ctx.fillRect(s.dir === 1 ? 4 * s.scale : -6 * s.scale, -1.5 * s.scale, 2.5 * s.scale, 3 * s.scale);
+
+            ctx.restore();
+        }
+
+        // 4. Digital Cyber Rain
+        for (let r of this.cyberRain) {
+            r.x += r.speedX;
+            r.y += r.speedY;
+            if (r.y > h) {
+                r.y = -20;
+                r.x = Math.random() * (w + 200) - 100;
+            }
+
+            ctx.strokeStyle = `${r.color}${r.alpha})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(r.x, r.y);
+            ctx.lineTo(r.x + r.speedX * 1.5, r.y + r.len);
+            ctx.stroke();
+        }
+
+        // 5. Horizon Wet Highway / Neon Reflection Grid
+        ctx.save();
+        const roadH = h * 0.18;
+        const roadY = h - roadH;
+        const roadGrad = ctx.createLinearGradient(0, roadY, 0, h);
+        roadGrad.addColorStop(0, 'rgba(20, 2, 35, 0.95)');
+        roadGrad.addColorStop(0.4, 'rgba(10, 0, 20, 0.98)');
+        roadGrad.addColorStop(1, '#05000a');
+        ctx.fillStyle = roadGrad;
+        ctx.fillRect(0, roadY, w, roadH);
+
+        // Perspective Laser Highway Lines
+        ctx.strokeStyle = 'rgba(255, 0, 128, 0.28)';
+        ctx.lineWidth = 1.2;
+        const numLanes = 12;
+        for (let i = 0; i <= numLanes; i++) {
+            const startX = (w * 0.5) + (i - numLanes * 0.5) * (w * 0.05);
+            const endX = (w * 0.5) + (i - numLanes * 0.5) * (w * 0.18);
+            ctx.beginPath();
+            ctx.moveTo(startX, roadY);
+            ctx.lineTo(endX, h);
+            ctx.stroke();
+        }
+
+        // Horizontal laser grid tracks moving forward
+        const gridSpeed = (now * 50) % 30;
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.22)';
+        for (let gy = roadY + gridSpeed; gy < h; gy += 25) {
+            ctx.beginPath();
+            ctx.moveTo(0, gy);
+            ctx.lineTo(w, gy);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
     triggerScoreBurst(linesCleared) {
         const currentTheme = document.body.getAttribute('data-theme') || 'modern';
         const cx = window.innerWidth / 2;
         const cy = window.innerHeight / 2;
+
+        if (currentTheme === 'cyberpunk') {
+            this.cyberSurge = linesCleared >= 4 ? 45 : 20;
+            return;
+        }
 
         if (currentTheme === 'zen') {
             // Zen Garden: Swirl of warm golden leaves
@@ -531,6 +848,12 @@ class BackgroundFX {
         const h = window.innerHeight;
         this.ctx.clearRect(0, 0, w, h);
         const now = Date.now() * 0.001;
+
+        if (isCyberpunk) {
+            this.drawCyberCity(this.ctx, w, h, now);
+            requestAnimationFrame(this._boundAnimate);
+            return;
+        }
 
         if (isZen) {
             // Warm Sandstone / Zen Garden Background
@@ -873,65 +1196,6 @@ class BackgroundFX {
             nesGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
             this.ctx.fillStyle = nesGlow;
             this.ctx.fillRect(0, 0, w, h);
-        } else if (isCyberpunk) {
-            // 1. Sun & Laser Beams
-            const sunX = w / 2;
-            const sunY = h * 0.45;
-            const sunRadius = Math.min(w, h) * 0.25;
-
-            // Volumetric Sun Laser Rays (Optimized 6 rays)
-            this.ctx.save();
-            const rayCount = 6;
-            for (let i = 0; i < rayCount; i++) {
-                const angle = (i / rayCount) * Math.PI * 2 + (now * 0.04);
-                const rx = sunX + Math.cos(angle) * w;
-                const ry = sunY + Math.sin(angle) * h;
-                const rayGrad = this.ctx.createLinearGradient(sunX, sunY, rx, ry);
-                rayGrad.addColorStop(0, `hsla(${(300 + this.hueShift) % 360}, 100%, 65%, 0.06)`);
-                rayGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                this.ctx.fillStyle = rayGrad;
-                this.ctx.beginPath();
-                this.ctx.moveTo(sunX, sunY);
-                this.ctx.arc(sunX, sunY, Math.max(w, h), angle - 0.09, angle + 0.09);
-                this.ctx.closePath();
-                this.ctx.fill();
-            }
-            this.ctx.restore();
-
-            // Sun Outer Glow
-            const sunGlow = this.ctx.createRadialGradient(sunX, sunY, sunRadius * 0.2, sunX, sunY, sunRadius * 1.8);
-            sunGlow.addColorStop(0, `hsla(${(320 + this.hueShift) % 360}, 100%, 65%, 0.35)`);
-            sunGlow.addColorStop(0.5, `hsla(${(280 + this.hueShift) % 360}, 100%, 50%, 0.12)`);
-            sunGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            this.ctx.fillStyle = sunGlow;
-            this.ctx.beginPath();
-            this.ctx.arc(sunX, sunY, sunRadius * 1.8, 0, Math.PI * 2);
-            this.ctx.fill();
-
-            // Sun Body Gradient
-            const sunGrad = this.ctx.createLinearGradient(sunX, sunY - sunRadius, sunX, sunY + sunRadius);
-            sunGrad.addColorStop(0, `hsl(${(50 + this.hueShift) % 360}, 100%, 60%)`);
-            sunGrad.addColorStop(0.5, `hsl(${(340 + this.hueShift) % 360}, 100%, 55%)`);
-            sunGrad.addColorStop(1, `hsl(${(280 + this.hueShift) % 360}, 100%, 45%)`);
-
-            this.ctx.save();
-            this.ctx.beginPath();
-            this.ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
-            this.ctx.clip();
-            this.ctx.fillStyle = sunGrad;
-            this.ctx.fillRect(sunX - sunRadius, sunY - sunRadius, sunRadius * 2, sunRadius * 2);
-
-            // Translucent Sun Horizontal Stripe Cuts
-            const stripeCount = 9;
-            const stripeGap = (sunRadius * 2) / (stripeCount * 1.6);
-            this.ctx.globalCompositeOperation = 'destination-out';
-            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-            for (let i = 0; i < stripeCount; i++) {
-                const stripeHeight = (i + 1) * 1.5;
-                const stripeY = sunY + (i * stripeGap) - (sunRadius * 0.05);
-                this.ctx.fillRect(sunX - sunRadius, stripeY, sunRadius * 2, stripeHeight);
-            }
-            this.ctx.restore();
         } else if (isNebula) {
             // Cosmic Nebula Theme: Deep Violet Space with Pulsing Cloud Blobs
             this.ctx.fillStyle = '#0a0518';
@@ -999,7 +1263,7 @@ class BackgroundFX {
             const origX = shape.x;
             const origY = shape.y;
 
-            let drawColor = isNES ? (shape.color || '#00f0f0') : (isCyberpunk ? shape.color : (shape.color || '#818cf8'));
+            let drawColor = isNES ? (shape.color || '#00f0f0') : (shape.color || '#818cf8');
             if (isGlitching) {
                 shape.x += (Math.random() - 0.5) * 45;
                 shape.y += (Math.random() - 0.5) * 45;
@@ -1008,8 +1272,8 @@ class BackgroundFX {
 
             this.ctx.save();
             this.ctx.strokeStyle = drawColor;
-            this.ctx.lineWidth = isGlitching ? 3.5 : (isNES ? 2.5 : (isCyberpunk ? 2.5 : 2.2));
-            this.ctx.globalAlpha = isGlitching ? 0.9 : (isNES ? 0.7 : (isCyberpunk ? 0.65 : 0.55));
+            this.ctx.lineWidth = isGlitching ? 3.5 : (isNES ? 2.5 : 2.2);
+            this.ctx.globalAlpha = isGlitching ? 0.9 : (isNES ? 0.7 : 0.55);
 
             shape.cubes.forEach(c => {
                 this.drawWireCube(c[0], c[1], c[2], shape);

@@ -494,9 +494,21 @@ class CyberSFX {
             osc.connect(gain);
             gain.connect(this.ctx.destination);
             osc.start(now);
+        } else if (theme === 'cyberpunk') {
+            // 16-Bit Neon City Move: Crisp FM synth pulse blip
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.exponentialRampToValueAtTime(220, now + 0.02);
+            gain.gain.setValueAtTime(0.12 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
             osc.stop(now + 0.02);
         } else {
-            // Soft click for Modern/Cyberpunk/Nebula
+            // Soft click for Modern/Nebula
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = 'sine';
@@ -581,9 +593,21 @@ class CyberSFX {
             osc.connect(gain);
             gain.connect(this.ctx.destination);
             osc.start(now);
-            osc.stop(now + 0.085);
+        } else if (theme === 'cyberpunk') {
+            // 16-Bit Neon Laser Spin: Dual-harmonic FM frequency sweep
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(320, now);
+            osc.frequency.linearRampToValueAtTime(680, now + 0.035);
+            gain.gain.setValueAtTime(0.13 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.038);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.038);
         } else {
-            // Modern/Cyberpunk rotate blip
+            // Modern rotate blip
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = 'triangle';
@@ -669,10 +693,24 @@ class CyberSFX {
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
                 osc.start(now + idx * 0.022);
-                osc.stop(now + (idx + 1) * 0.022);
+        } else if (theme === 'cyberpunk') {
+            // Cyberdeck Deck Swap: Fast 16-bit cybernetic octave chirps
+            const notes = [440, 660, 880];
+            notes.forEach((freq, idx) => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                const startTime = now + idx * 0.02;
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0.12 * this.volume, startTime);
+                gain.gain.setValueAtTime(0.001, startTime + 0.02);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + 0.02);
             });
         } else {
-            // Futuristic hold shimmer (Modern/Cyberpunk/Nebula)
+            // Futuristic hold shimmer (Modern/Nebula)
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = 'triangle';
@@ -755,10 +793,21 @@ class CyberSFX {
             gain.gain.setValueAtTime(0.001, now + 0.035);
             osc.connect(gain);
             gain.connect(this.ctx.destination);
+        } else if (theme === 'cyberpunk') {
+            // 16-Bit Neon Latch: Low-frequency digital lock
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(160, now);
+            osc.frequency.exponentialRampToValueAtTime(50, now + 0.035);
+            gain.gain.setValueAtTime(0.16 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
             osc.start(now);
             osc.stop(now + 0.035);
         } else {
-            // Modern/Cyberpunk land thud
+            // Modern land thud
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = 'sine';
@@ -842,8 +891,19 @@ class CyberSFX {
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
             osc.connect(gain);
             gain.connect(this.ctx.destination);
+        } else if (theme === 'cyberpunk') {
+            // 16-Bit Cyber Slam: Heavy FM transient with sub-bass punch
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(280, now);
+            osc.frequency.exponentialRampToValueAtTime(35, now + 0.06);
+            gain.gain.setValueAtTime(0.22 * this.volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
             osc.start(now);
-            osc.stop(now + 0.055);
+            osc.stop(now + 0.065);
         } else {
             // Modern hard drop
             const osc = this.ctx.createOscillator();
@@ -1190,7 +1250,90 @@ class CyberSFX {
             return;
         }
 
-        // Cyberpunk / Modern theme playScoreSound
+        if (theme === 'cyberpunk') {
+            const vol = 0.22 * this.volume;
+            if (linesCleared === 1) {
+                // 1 Line: Dual FM Synthwave stab (A4 -> C#5)
+                const notes = [440.00, 554.37];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.04);
+                    gain.gain.setValueAtTime(vol * 0.85, now + i * 0.04);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.12);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.04);
+                    osc.stop(now + i * 0.04 + 0.12);
+                });
+            } else if (linesCleared === 2) {
+                // 2 Lines: FM Synthwave Triad (A4 -> C#5 -> E5)
+                const notes = [440.00, 554.37, 659.25];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.035);
+                    gain.gain.setValueAtTime(vol * 0.9, now + i * 0.035);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.035 + 0.16);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.035);
+                    osc.stop(now + i * 0.035 + 0.16);
+                });
+            } else if (linesCleared === 3) {
+                // 3 Lines: Cyberpunk Maj7 Arpeggio (A4 -> C#5 -> E5 -> G#5)
+                const notes = [440.00, 554.37, 659.25, 830.61];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.03);
+                    gain.gain.setValueAtTime(vol, now + i * 0.03);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.03 + 0.22);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.03);
+                    osc.stop(now + i * 0.03 + 0.22);
+                });
+            } else if (linesCleared >= 4) {
+                // TETRIS: 16-Bit Arcade Outrun/Synthwave Fanfare + Sub Pulse!
+                const leadNotes = [659.25, 830.61, 987.77, 1318.51, 1479.98, 1661.22];
+                leadNotes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    const startTime = now + i * 0.045;
+                    const dur = i === leadNotes.length - 1 ? 0.35 : 0.042;
+                    osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(vol * 1.1, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + dur);
+                });
+
+                // FM Bass Synth Stabs
+                const bassNotes = [110.00, 164.81, 220.00];
+                bassNotes.forEach((freq, i) => {
+                    const bOsc = this.ctx.createOscillator();
+                    const bGain = this.ctx.createGain();
+                    bOsc.type = 'square';
+                    bOsc.frequency.setValueAtTime(freq, now + i * 0.09);
+                    bGain.gain.setValueAtTime(vol * 1.3, now + i * 0.09);
+                    bGain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.18);
+                    bOsc.connect(bGain);
+                    bGain.connect(this.ctx.destination);
+                    bOsc.start(now + i * 0.09);
+                    bOsc.stop(now + i * 0.09 + 0.18);
+                });
+            }
+            return;
+        }
+
+        // Modern theme playScoreSound
         const volMultiplier = this.volume;
         const masterGain = this.ctx.createGain();
         const baseVol = (linesCleared >= 4 ? 0.18 : 0.08) * volMultiplier;
@@ -1343,6 +1486,23 @@ class CyberSFX {
                 osc.start(startTime);
                 osc.stop(startTime + note.d);
                 offset += note.d * 1.05;
+            });
+        } else if (theme === 'cyberpunk') {
+            // 16-Bit Neon City Power Down / Flatline
+            const notes = [587.33, 554.37, 493.88, 440.00, 392.00, 329.63, 220.00, 110.00];
+            notes.forEach((freq, i) => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                const startTime = now + i * 0.065;
+                const dur = i === notes.length - 1 ? 0.45 : 0.06;
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0.18 * this.volume, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + dur);
             });
         } else {
             const osc = this.ctx.createOscillator();

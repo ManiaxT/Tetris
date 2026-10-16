@@ -620,27 +620,15 @@ canvas#hold-canvas, canvas#next-canvas {
 /* --- Cyberpunk Theme Effects --- */
 
 body[data-theme="cyberpunk"] {
-    background: radial-gradient(circle at center top, #3b004d 0%, #0a001a 100%);
+    background-color: #060112;
     position: relative;
     z-index: 1;
     overflow-x: hidden;
 }
 
-/* Synthwave Grid Background */
+/* Hide CSS overlay grid to reveal dynamic 16-bit canvas neon city */
 body[data-theme="cyberpunk"]::before {
-    content: "";
-    position: absolute;
-    bottom: -50%;
-    left: -50%;
-    width: 200%;
-    height: 150%;
-    background-image: 
-        linear-gradient(rgba(255, 0, 128, 0.3) 2px, transparent 2px),
-        linear-gradient(90deg, rgba(255, 0, 128, 0.3) 2px, transparent 2px);
-    background-size: 60px 60px;
-    transform: perspective(600px) rotateX(60deg);
-    animation: gridMove 2s linear infinite;
-    z-index: -2;
+    display: none;
 }
 
 @keyframes gridMove {
@@ -1587,31 +1575,66 @@ body[data-theme="mario"] .stat p {
     text-shadow: 2px 2px 0px #000000;
 }
 
+body[data-theme="mario"] #main-leaderboard-list li {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.55rem;
+    line-height: 1.6;
+    padding: 0.5rem 0.35rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(252, 216, 0, 0.2);
+}
+
+body[data-theme="mario"] #main-leaderboard-list li span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 58%;
+    color: #ffffff;
+}
+
+body[data-theme="mario"] #main-leaderboard-list li span:last-child {
+    float: none;
+    font-size: 0.55rem;
+    color: #fcd800;
+    text-shadow: 1px 1px 0px #000000;
+    flex-shrink: 0;
+    margin-left: 0.4rem;
+}
+
 body[data-theme="mario"] #scores-table th {
     font-family: 'Press Start 2P', monospace;
-    font-size: 0.65rem;
+    font-size: 0.52rem;
+    padding: 0.5rem 0.25rem;
     color: #fcd800;
     border-bottom: 2px solid #fcd800;
+    letter-spacing: 0.02rem;
 }
 
 body[data-theme="mario"] #scores-table td {
     font-family: 'Press Start 2P', monospace;
-    font-size: 0.68rem;
+    font-size: 0.54rem;
+    padding: 0.45rem 0.2rem;
+    white-space: nowrap;
 }
 
 body[data-theme="mario"] #scores-table tr:nth-child(1) td {
     color: #fcd800;
     text-shadow: 2px 2px 0px #000000;
+    font-size: 0.58rem;
 }
 
 body[data-theme="mario"] #scores-table tr:nth-child(2) td {
     color: #00e000;
     text-shadow: 2px 2px 0px #000000;
+    font-size: 0.56rem;
 }
 
 body[data-theme="mario"] #scores-table tr:nth-child(3) td {
     color: #00d0ff;
     text-shadow: 2px 2px 0px #000000;
+    font-size: 0.55rem;
 }
 
 body[data-theme="mario"] #player-name {

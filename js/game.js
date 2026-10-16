@@ -193,24 +193,46 @@ class Game {
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(x + dotPos, y + dotPos, dotSize, dotSize);
         } else if (theme === 'cyberpunk') {
-            // Dark base fill
-            ctx.fillStyle = 'rgba(6, 2, 18, 0.92)';
-            ctx.fillRect(x, y, size, size);
+            // 16-Bit Neon Arcade Cyber Block
+            const border = 1;
+            const innerSize = size - border * 2;
+            const coreSize = Math.max(4, Math.floor(size / 3));
+            const coreOffset = Math.floor((size - coreSize) / 2);
 
-            // Vibrant neon stroke
+            // Dark obsidian cyber alloy base
+            const baseGrad = ctx.createLinearGradient(x, y, x + size, y + size);
+            baseGrad.addColorStop(0, '#1a0528');
+            baseGrad.addColorStop(1, '#080112');
+            ctx.fillStyle = baseGrad;
+            ctx.fillRect(x + border, y + border, innerSize, innerSize);
+
+            // Diagonal 16-bit microchip circuitry tracks
+            ctx.strokeStyle = 'rgba(255, 0, 128, 0.25)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x + 4, y + size - 4);
+            ctx.lineTo(x + size - 4, y + 4);
+            ctx.stroke();
+
+            // High-voltage outer neon laser stroke
             ctx.strokeStyle = finalColor;
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 2;
             ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
-            
-            // Inner vibrant core
-            const padding = Math.max(2, Math.floor(size / 3.5));
-            ctx.fillStyle = finalColor;
-            ctx.fillRect(x + padding, y + padding, size - padding * 2, size - padding * 2);
 
-            // Inner top-left highlight accent
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-            ctx.fillRect(x + padding, y + padding, size - padding * 2, 2);
-            ctx.fillRect(x + padding, y + padding, 2, size - padding * 2);
+            // 4 Corner Micro-Circuit LED Nodes
+            ctx.fillStyle = '#00f0ff'; // Cyan neon pins
+            ctx.fillRect(x + 2, y + 2, 2, 2);
+            ctx.fillRect(x + size - 4, y + 2, 2, 2);
+            ctx.fillRect(x + 2, y + size - 4, 2, 2);
+            ctx.fillRect(x + size - 4, y + size - 4, 2, 2);
+
+            // Central Luminous Cyber Core
+            ctx.fillStyle = finalColor;
+            ctx.fillRect(x + coreOffset, y + coreOffset, coreSize, coreSize);
+
+            // Core White Hot-Spot Highlight
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + coreOffset + 1, y + coreOffset + 1, Math.max(1, coreSize - 2), Math.max(1, coreSize - 2));
         } else if (theme === 'nebula') {
             // Performance-Optimized 3D Cosmic Glass Block (60 FPS)
             const inset = 1;
